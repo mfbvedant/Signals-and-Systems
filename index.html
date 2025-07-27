@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Interactive Signal Processing Explorer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- AOS CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/ScrollToPlugin.min.js"></script>
+    <!-- AOS JS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- MathJax for LaTeX rendering -->
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+        </script>
+    <!-- Additional styles -->
+    <style>
+        /* Global styles and transitions */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            transition: background-color 0.8s, color 0.8s;
+        }
+
+        /* Custom subtle gradient background */
+        .gradient-apple {
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.85), rgba(245, 245, 247, 0.85));
+        }
+
+        .dark .gradient-apple {
+            background: linear-gradient(to bottom, rgba(15, 15, 15, 0.85), rgba(45, 45, 45, 0.85));
+        }
+
+        /* Ripple effect for buttons */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.7);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        .dark .ripple {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Particle effect */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.5);
+            pointer-events: none;
+        }
+
+        /* Floating animation */
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        /* Custom cursor */
+        .cursor-dot {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+        }
+
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(59, 130, 246, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: all 0.1s ease;
+        }
+
+        /* Section highlight */
+        .section-highlight {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1), transparent 70%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            z-index: -1;
+        }
+
+        section:hover .section-highlight {
+            opacity: 1;
+        }
+
+        /* Button hover effect */
+        .btn-hover {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .btn-hover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.4s ease;
+        }
+
+        .btn-hover:hover::before {
+            transform: translateX(0);
+        }
+
+        .btn-hover:active {
+            transform: scale(0.98);
+        }
+
+        /* Typewriter effect */
+        .typewriter {
+            overflow: hidden;
+            border-right: .15em solid #3b82f6;
+            white-space: nowrap;
+            animation: blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes blink-caret {
+
+            from,
+            to {
+                border-color: transparent
+            }
+
+            50% {
+                border-color: #3b82f6
+            }
+        }
+
+        /* Ensure logo is hidden before GSAP animates it */
+        #logo {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: white;
+            /* Default light mode background */
+            color: #000000;
+            /* Pure black for light mode */
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 900px;
+            width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+            transform: scale(0.8);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .dark .modal-content {
+            background-color: #000000;
+            /* Changed to black for dark mode */
+            color: #f3f4f6;
+            /* Lighter text for dark mode, similar to text-gray-100 */
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #a0a0a0;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close-btn:hover {
+            color: #606060;
+        }
+
+        .dark .modal-close-btn {
+            color: #cbd5e1;
+        }
+
+        .dark .modal-close-btn:hover {
+            color: #a0aec0;
+        }
+
+        /* Apple-like button styles for back button */
+        .apple-button-secondary {
+            @apply font-semibold py-2 px-4 rounded-xl transition duration-150 ease-in-out;
+            background-color: #e0e0e0;
+            /* Light Gray */
+            color: #333;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .apple-button-secondary:hover {
+            background-color: #d0d0d0;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .apple-button-secondary:focus {
+            @apply outline-none ring-2 ring-gray-300 ring-opacity-75;
+        }
+
+        .dark .apple-button-secondary {
+            background-color: #4a5568;
+            /* Darker gray for dark mode */
+            color: #e2e8f0;
+        }
+
+        .dark .apple-button-secondary:hover {
+            background-color: #2d3748;
+        }
+    </style>
+</head>
+
+<body class="font-sans antialiased text-black dark:text-gray-50 bg-white dark:bg-gray-900">
+    <!-- Custom cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-white dark:bg-gray-900 shadow-md z-50">
+        <div class="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between">
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white" id="logo">Signal Processing Explorer</h1>
+            <div class="space-x-4">
+                <a href="#signal-explorer"
+                    class="nav-link text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition btn-hover px-3 py-1 rounded">Explorer</a>
+                <a href="#signal-operations"
+                    class="nav-link text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition btn-hover px-3 py-1 rounded">Operations</a>
+                <a href="#signal-classifications"
+                    class="nav-link text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition btn-hover px-3 py-1 rounded">Classifications</a>
+                <a href="#analog-to-digital"
+                    class="nav-link text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition btn-hover px-3 py-1 rounded">Analog/Digital</a>
+                <a href="#practice-questions"
+                    class="nav-link text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition btn-hover px-3 py-1 rounded">Practice</a>
+                <a href="#concept-clarifier"
+                    class="nav-link text-gray-700 dark:text-gray-300 hover:text-gray-300 transition btn-hover px-3 py-1 rounded">Clarifier</a>
+            </div>
+            <!-- Dark/Light Mode Toggle -->
+            <button id="theme-toggle" aria-label="Toggle Dark Mode"
+                class="p-2 bg-gray-200 dark:bg-gray-700 rounded-full ripple-button btn-hover">
+                <svg id="theme-toggle-dark-icon" class="w-6 h-6 hidden dark:block" fill="currentColor"
+                    viewBox="0 0 20 20">
+                    <path d="M10 2a8 8 0 0 0 0 16v-16z" />
+                </svg>
+                <svg id="theme-toggle-light-icon" class="w-6 h-6 block dark:hidden" fill="currentColor"
+                    viewBox="0 0 20 20">
+                    <path
+                        d="M10 1v2m0 14v2m8-10h2M1 10H3m14.66 4.66l1.414-1.414M3.754 16.246l-1.414-1.414M19 10h-2M1 10H3m16.66 4.66l-1.414-1.414M3.754 3.754l-1.414 1.414" />
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <main class="pt-20">
+        <!-- Signal Explorer Section -->
+        <section id="signal-explorer"
+            class="min-h-screen py-20 px-5 bg-white dark:bg-gray-800 relative overflow-hidden">
+            <div class="section-highlight"></div>
+            <div class="max-w-4xl mx-auto relative z-10">
+                <h2 data-aos="fade-down" class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+                    Signal Explorer</h2>
+                <p data-aos="fade-up" class="text-lg text-black dark:text-gray-300 mb-8">Generate and visualize
+                    signals. Adjust parameters to explore different waveforms.</p>
+                <div data-aos="zoom-in" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6">
+                    <canvas id="chartExplorer"></canvas>
+                    <div class="mt-6 space-y-4">
+                        <div class="flex items-center space-x-4">
+                            <label class="font-medium w-24 text-black dark:text-gray-200">Amplitude</label>
+                            <input id="ampSlider" type="range" min="0" max="10" step="0.1" value="1"
+                                class="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer ripple-button" />
+                            <span id="ampValue" class="w-12 text-center text-black dark:text-gray-100">1.0</span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <label class="font-medium w-24 text-black dark:text-gray-200">Frequency</label>
+                            <input id="freqSlider" type="range" min="1" max="10" step="0.1" value="1"
+                                class="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer ripple-button" />
+                            <span id="freqValue" class="w-12 text-center text-black dark:text-gray-100">1.0</span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <label class="font-medium w-24 text-black dark:text-gray-200">Phase</label>
+                            <input id="phaseSlider" type="range" min="0" max="6.28" step="0.1" value="0"
+                                class="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer ripple-button" />
+                            <span id="phaseValue" class="w-12 text-center text-black dark:text-gray-100">0.0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signal Operations Section -->
+        <section id="signal-operations"
+            class="min-h-screen py-20 px-5 bg-gray-50 dark:bg-gray-700 relative overflow-hidden">
+            <div class="section-highlight"></div>
+            <div class="max-w-4xl mx-auto relative z-10">
+                <h2 data-aos="fade-down" class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+                    Signal Operations</h2>
+                <p data-aos="fade-up" class="text-lg text-black dark:text-gray-300 mb-8">Combine and manipulate
+                    signals using operations like addition, subtraction, and filtering.</p>
+                <div data-aos="zoom-in" class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">Input Signals</h3>
+                        <canvas id="chartInput"></canvas>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">Combined Output</h3>
+                        <canvas id="chartOutput"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signal Classifications Section -->
+        <section id="signal-classifications"
+            class="min-h-screen py-20 px-5 bg-white dark:bg-gray-800 relative overflow-hidden">
+            <div class="section-highlight"></div>
+            <div class="max-w-4xl mx-auto relative z-10">
+                <h2 data-aos="fade-down" class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+                    Signal Classifications</h2>
+                <p data-aos="fade-up" class="text-lg text-black dark:text-gray-300 mb-8">Explore different types of
+                    signals: analog vs digital, periodic vs aperiodic, and more.</p>
+
+                <!-- Main Classification Cards -->
+                <div id="classification-cards" data-aos="fade-up" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
+                        data-detail-id="analog-digital-detail">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Analog vs Digital</h3>
+                        <p class="text-black dark:text-gray-300">Continuous vs discrete signals.</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
+                        data-detail-id="periodic-aperiodic-detail">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Periodic vs Aperiodic</h3>
+                        <p class="text-black dark:text-gray-300">Repeating vs non-repeating waveforms.</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
+                        data-detail-id="energy-power-detail">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Energy vs Power</h3>
+                        <p class="text-black dark:text-gray-300">Signals classified by their total energy or average
+                            power.</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
+                        data-detail-id="causal-noncausal-detail">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Causal vs Non-causal</h3>
+                        <p class="text-black dark:text-gray-300">Dependency on past, present, or future inputs.</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
+                        data-detail-id="deterministic-random-detail">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Deterministic vs Random
+                        </h3>
+                        <p class="text-black dark:text-gray-300">Predictable vs unpredictable signals.</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
+                        data-detail-id="even-odd-detail">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Even vs Odd</h3>
+                        <p class="text-black dark:text-gray-300">Signals based on their symmetry properties.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analog to Digital Section -->
+        <section id="analog-to-digital"
+            class="min-h-screen py-20 px-5 bg-gray-50 dark:bg-gray-700 relative overflow-hidden">
+            <div class="section-highlight"></div>
+            <div class="max-w-4xl mx-auto relative z-10">
+                <h2 data-aos="fade-down" class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+                    Analog to Digital</h2>
+                <p data-aos="fade-up" class="text-lg text-black dark:text-gray-300 mb-8">Visualize the conversion of
+                    an analog signal to its sampled digital representation. Adjust the sampling rate to see aliasing
+                    effects.</p>
+                <div data-aos="zoom-in" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6">
+                    <canvas id="chartAnalog"></canvas>
+                    <div class="mt-6 flex items-center space-x-4">
+                        <label class="font-medium w-24 text-black dark:text-gray-200">Sampling Rate</label>
+                        <input id="samplingSlider" type="range" min="1" max="20" step="1" value="10"
+                            class="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer ripple-button" />
+                        <span id="samplingValue" class="w-12 text-center text-black dark:text-gray-100">10</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Practice Questions Section -->
+        <section id="practice-questions"
+            class="min-h-screen py-20 px-5 bg-white dark:bg-gray-800 relative overflow-hidden">
+            <div class="section-highlight"></div>
+            <div class="max-w-4xl mx-auto relative z-10">
+                <h2 data-aos="fade-down" class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+                    Practice Questions</h2>
+                <p data-aos="fade-up" class="text-lg text-black dark:text-gray-300 mb-8">Test your understanding with
+                    interactive practice questions. Click to reveal answers and explanations.</p>
+                <div id="question-cards" data-aos="fade-up" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Questions will be dynamically loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Concept Clarifier Section -->
+        <section id="concept-clarifier"
+            class="min-h-screen py-20 px-5 bg-gray-50 dark:bg-gray-700 relative overflow-hidden">
+            <div class="section-highlight"></div>
+            <div class="max-w-4xl mx-auto relative z-10">
+                <h2 data-aos="fade-down" class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+                    Concept Clarifier</h2>
+                <p data-aos="fade-up" class="text-lg text-black dark:text-gray-300 mb-8">Ask questions and get
+                    AI-powered explanations on signal processing concepts. Enter your question below:</p>
+                <div data-aos="zoom-in" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 space-y-4">
+                    <textarea id="aiQuestion" rows="3" placeholder="Type your question..."
+                        class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-400"></textarea>
+                    <button id="askBtn"
+                        class="w-full py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition ripple-button btn-hover">Ask
+                        AI</button>
+                    <div id="aiAnswer" class="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg hidden">
+                        <p class="text-black dark:text-gray-100"><strong>AI Explanation:</strong> <span
+                                id="aiAnswerText"></span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="py-10 text-center bg-white dark:bg-gray-900">
+            <p class="text-gray-600 dark:text-gray-400">Interactive Signal Processing Explorer &copy; 2025</p>
+        </footer>
+    </main>
+
+    <!-- Classification Detail Modal -->
+    <div id="classification-detail-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" id="modal-close-btn">&times;</button>
+            <h3 id="modal-title" class="text-black dark:text-white text-3xl font-bold mb-4"></h3>
+            <div id="modal-body" class="text-black dark:text-gray-50">
+                <!-- Content will be injected here -->
+            </div>
+            <button class="apple-button-secondary mt-6" id="modal-back-btn">Back to Classifications</button>
+        </div>
+    </div>
+
+    <!-- Question Detail Modal -->
+    <div id="question-detail-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" id="question-modal-close-btn">&times;</button>
+            <h3 id="question-modal-title" class="text-black dark:text-white text-3xl font-bold mb-4"></h3>
+            <div id="question-modal-body" class="text-black dark:text-gray-50">
+                <p class="font-semibold mb-2">Question:</p>
+                <p id="question-text-display" class="mb-6"></p>
+                <!-- The "Show Answer" button has been removed -->
+                <div id="answer-display"> <!-- Removed 'hidden' class here -->
+                    <p class="font-semibold mb-2">Answer:</p>
+                    <p id="answer-text-display"></p>
+                </div>
+            </div>
+            <button class="apple-button-secondary mt-6" id="question-modal-back-btn">Back to Questions</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize AOS (Animate On Scroll)
+        AOS.init({ once: true, duration: 800 });
+
+        // Custom cursor
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', function (e) {
+            cursorDot.style.left = `${e.clientX}px`;
+            cursorDot.style.top = `${e.clientY}px`;
+
+            cursorOutline.style.left = `${e.clientX}px`;
+            cursorOutline.style.top = `${e.clientY}px`;
+            cursorOutline.style.transition = 'all 0.05s ease';
+        });
+
+        // Ripple effect for buttons
+        document.querySelectorAll('.ripple-button').forEach(button => {
+            button.addEventListener('click', function (e) {
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+
+                const rect = button.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+
+                ripple.style.width = `${size}px`;
+                ripple.style.height = `${size}px`;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+
+                button.appendChild(ripple);
+
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+
+        // Particle effect for hero section
+        function createParticles() {
+            const section = document.getElementById('signal-explorer');
+            const particleCount = 30;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+
+                const size = Math.random() * 10 + 5;
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                const animationDuration = Math.random() * 10 + 5;
+
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}%`;
+                particle.style.top = `${posY}%`;
+                particle.style.opacity = Math.random() * 0.5 + 0.1;
+                particle.style.animation = `float ${animationDuration}s infinite ease-in-out`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+
+                section.appendChild(particle);
+            }
+        }
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetSection = document.querySelector(targetId);
+
+                // Calculate scroll position, accounting for fixed header
+                const scrollY = targetSection.offsetTop - 80;
+
+                gsap.to(window, {
+                    duration: 1,
+                    scrollTo: {
+                        y: scrollY,
+                        offsetY: 0
+                    },
+                    ease: "power2.inOut"
+                });
+            });
+        });
+
+        // Dark/Light mode toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const darkIcon = document.getElementById('theme-toggle-dark-icon');
+        const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+        // Check local storage for theme
+        if (localStorage.getItem('theme') === 'dark' ||
+            (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            darkIcon.classList.remove('hidden');
+            darkIcon.classList.add('block');
+            lightIcon.classList.remove('block');
+            lightIcon.classList.add('hidden');
+        }
+
+        themeToggle.addEventListener('click', function () {
+            // Flip animation
+            gsap.to(themeToggle, {
+                rotationY: '+=180',
+                duration: 0.5,
+                onComplete: function () {
+                    document.documentElement.classList.toggle('dark');
+                    darkIcon.classList.toggle('hidden');
+                    darkIcon.classList.toggle('block');
+                    lightIcon.classList.toggle('hidden');
+                    lightIcon.classList.toggle('block');
+
+                    if (document.documentElement.classList.contains('dark')) {
+                        localStorage.setItem('theme', 'dark');
+                    } else {
+                        localStorage.setItem('theme', 'light');
+                    }
+                }
+            });
+        });
+
+        // Chart.js for Signal Explorer
+        const ctxExplorer = document.getElementById('chartExplorer').getContext('2d');
+        let amp = parseFloat(document.getElementById('ampSlider').value);
+        let freq = parseFloat(document.getElementById('freqSlider').value);
+        let phase = parseFloat(document.getElementById('phaseSlider').value);
+        const dataLength = 100;
+
+        let explorerData = Array.from({ length: dataLength }, (_, i) => {
+            let x = (i / dataLength) * 4 * Math.PI;
+            return amp * Math.sin(freq * x + phase);
+        });
+
+        const chartExplorer = new Chart(ctxExplorer, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: dataLength }, (_, i) => i),
+                datasets: [{
+                    label: 'Signal',
+                    data: explorerData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59,130,246,0.2)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                animation: { duration: 500 },
+                scales: {
+                    x: { display: false },
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        function updateExplorer() {
+            amp = parseFloat(document.getElementById('ampSlider').value);
+            freq = parseFloat(document.getElementById('freqSlider').value);
+            phase = parseFloat(document.getElementById('phaseSlider').value);
+
+            document.getElementById('ampValue').innerText = amp.toFixed(1);
+            document.getElementById('freqValue').innerText = freq.toFixed(1);
+            document.getElementById('phaseValue').innerText = phase.toFixed(1);
+
+            chartExplorer.data.datasets[0].data = Array.from({ length: dataLength }, (_, i) => {
+                let x = (i / dataLength) * 4 * Math.PI;
+                return amp * Math.sin(freq * x + phase);
+            });
+
+            chartExplorer.update();
+        }
+
+        document.getElementById('ampSlider').addEventListener('input', updateExplorer);
+        document.getElementById('freqSlider').addEventListener('input', updateExplorer);
+        document.getElementById('phaseSlider').addEventListener('input', updateExplorer);
+
+        // Chart.js for Signal Operations (Input and Combined charts)
+        const ctxInput = document.getElementById('chartInput').getContext('2d');
+        const ctxOutput = document.getElementById('chartOutput').getContext('2d');
+
+        // Example input signals
+        const inputData1 = Array.from({ length: dataLength }, (_, i) => Math.sin(2 * Math.PI * i / dataLength));
+        const inputData2 = Array.from({ length: dataLength }, (_, i) => 0.5 * Math.cos(4 * Math.PI * i / dataLength));
+
+        const chartInput = new Chart(ctxInput, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: dataLength }, (_, i) => i),
+                datasets: [
+                    { label: 'Signal 1', data: inputData1, borderColor: '#f97316', tension: 0.4 },
+                    { label: 'Signal 2', data: inputData2, borderColor: '#10b981', tension: 0.4 }
+                ]
+            },
+            options: {
+                responsive: true,
+                animation: { duration: 500 },
+                scales: { x: { display: false }, y: { beginAtZero: false } }
+            }
+        });
+
+        const chartOutput = new Chart(ctxOutput, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: dataLength }, (_, i) => i),
+                datasets: [{
+                    label: 'Combined Signal',
+                    data: inputData1.map((v, i) => v + inputData2[i]),
+                    borderColor: '#8b5cf6',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                animation: { duration: 500 },
+                scales: { x: { display: false }, y: { beginAtZero: false } }
+            }
+        });
+
+        // Chart.js for Analog to Digital conversion
+        const ctxAnalog = document.getElementById('chartAnalog').getContext('2d');
+        let samplingRate = parseInt(document.getElementById('samplingSlider').value);
+
+        // Prepare analog signal data points
+        const analogDataX = Array.from({ length: dataLength }, (_, i) => i * 0.1);
+        const analogDataY = analogDataX.map(x => Math.sin(x));
+        const analogPoints = analogDataX.map((x, i) => ({ x: x, y: analogDataY[i] }));
+
+        const chartAnalog = new Chart(ctxAnalog, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: 'Analog Signal',
+                        data: analogPoints,
+                        borderColor: '#3b82f6',
+                        pointRadius: 0,
+                        showLine: true,
+                        fill: false,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Sampled Points',
+                        data: analogPoints.filter((_, i) => i % samplingRate === 0),
+                        borderColor: '#ef4444',
+                        pointRadius: 6,
+                        showLine: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                animation: { duration: 500 },
+                scales: {
+                    x: { type: 'linear', title: { display: true, text: 'Time' } },
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        function updateAnalog() {
+            samplingRate = parseInt(document.getElementById('samplingSlider').value);
+            document.getElementById('samplingValue').innerText = samplingRate;
+
+            const sampledPoints = analogPoints.filter((_, i) => i % samplingRate === 0);
+            chartAnalog.data.datasets[1].data = sampledPoints;
+            chartAnalog.update();
+        }
+
+        document.getElementById('samplingSlider').addEventListener('input', updateAnalog);
+
+        // AI Concept Clarifier with typing effect
+        document.getElementById('askBtn').addEventListener('click', function () {
+            const question = document.getElementById('aiQuestion').value;
+            if (question.trim() === '') return;
+
+            // Show loading state
+            const originalText = this.textContent;
+            this.textContent = 'Thinking...';
+            this.disabled = true;
+
+            // Simulate AI processing
+            setTimeout(() => {
+                this.textContent = originalText;
+                this.disabled = false;
+
+                const answerContainer = document.getElementById('aiAnswer');
+                const answerText = document.getElementById('aiAnswerText');
+
+                // Sample answers based on question keywords
+                let response = '';
+                const lowerQuestion = question.toLowerCase();
+
+                if (lowerQuestion.includes('nyquist')) {
+                    response = 'The Nyquist rate is a fundamental concept in signal processing. It refers to the minimum sampling rate required to accurately reconstruct a continuous signal from its samples. Specifically, the Nyquist rate is twice the highest frequency present in the signal. Sampling at a rate lower than the Nyquist rate leads to aliasing, where different signals become indistinguishable after sampling. This principle is crucial in analog-to-digital conversion and ensures that the original signal can be perfectly reconstructed from its samples.';
+                } else if (lowerQuestion.includes('aliasing')) {
+                    response = 'Aliasing occurs when a continuous signal is sampled at a rate that is too low to accurately represent the highest frequencies in the signal. When the sampling rate is below the Nyquist rate (twice the highest frequency), higher frequency components fold back into lower frequencies, creating distortion in the reconstructed signal. This phenomenon can cause significant errors in digital signal processing systems. Anti-aliasing filters are used before sampling to remove frequencies above half the sampling rate to prevent this effect.';
+                } else if (lowerQuestion.includes('fourier') || lowerQuestion.includes('fft')) {
+                    response = 'The Fourier Transform is a mathematical technique that decomposes a signal into its constituent frequencies. It transforms a time-domain signal into its frequency-domain representation. The Fast Fourier Transform (FFT) is an efficient algorithm for computing the Discrete Fourier Transform (DFT) and its inverse. FFT reduces the computation time from O(N²) to O(N log N), making it practical for real-time signal processing applications like audio processing, image analysis, and telecommunications.';
+                } else {
+                    response = 'Signal processing is a field of engineering and applied mathematics that deals with the analysis, synthesis, and modification of signals. Signals can be one-dimensional (like audio) or multi-dimensional (like images). The core concepts include sampling, filtering, Fourier analysis, and system modeling. Modern applications span telecommunications, audio processing, medical imaging, control systems, and machine learning. Understanding the fundamentals of analog vs digital signals, time vs frequency domain analysis, and system responses is essential for mastering this field.';
+                }
+
+                answerText.textContent = '';
+                answerContainer.classList.remove('hidden');
+
+                // Typewriter effect
+                let i = 0;
+                const typingSpeed = 20; // milliseconds per character
+
+                function typeWriter() {
+                    if (i < response.length) {
+                        answerText.textContent += response.charAt(i);
+                        i++;
+                        setTimeout(typeWriter, typingSpeed);
+                    }
+                }
+
+                typeWriter();
+            }, 1500);
+        });
+
+        // Classification Detail Modal Logic
+        const modal = document.getElementById('classification-detail-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+        const modalBackBtn = document.getElementById('modal-back-btn');
+
+        // Content for classification details (moved to JS for dynamic loading)
+        const classificationDetailsContent = {
+            'analog-digital-detail': {
+                title: 'Analog vs Digital Signals',
+                content: `
+                    <p class="text-lg mb-6">
+                        Signals can be broadly categorized based on their nature in time and amplitude.
+                    </p>
+                    <h4 class="text-2xl font-semibold mb-3">Analog Signals</h4>
+                    <p class="mb-4">
+                        An **analog signal** is a continuous signal for which the time-varying feature (variable) of the signal is a representation of some other time varying quantity. It is defined for every instant of time and can take on any value within a continuous range. Analog signals are found in nature, such as sound waves, light, and temperature.
+                        <br><br>
+                        Mathematically, an analog signal $x(t)$ is a function of continuous time $t$.
+                    </p>
+                    <h4 class="text-2xl font-semibold mb-3">Digital Signals</h4>
+                    <p class="mb-4">
+                        A **digital signal** is a discrete signal, sampled from an analog signal, and then quantized into a finite set of values. It is defined only at specific, discrete points in time and can only take on a finite number of amplitude values. The process of converting an analog signal to a digital signal involves two main steps:
+                        <br><br>
+                        1.  **Sampling:** Converting a continuous-time signal into a discrete-time signal by taking samples at regular intervals. If an analog signal is $x_a(t)$, its sampled version is $x[n] = x_a(nT_s)$, where $T_s$ is the sampling period and $n$ is an integer.
+                        2.  **Quantization:** Approximating the continuous amplitude values of the sampled signal to a finite set of discrete levels.
+                        <br><br>
+                        Digital signals are used in modern electronic devices, computers, and telecommunications due to their robustness against noise and ease of processing.
+                    </p>
+                `
+            },
+            'periodic-aperiodic-detail': {
+                title: 'Periodic vs Aperiodic Signals',
+                content: `
+                    <p class="text-lg mb-6">
+                        Signals can be classified based on whether their waveform repeats over time.
+                    </p>
+                    <h4 class="text-2xl font-semibold mb-3">Periodic Signals</h4>
+                    <p class="mb-4">
+                        A signal is **periodic** if its waveform repeats at regular intervals over its entire duration.
+                        <br><br>
+                        For a continuous-time signal $x(t)$, it is periodic if there exists a positive constant $T_0$ (called the fundamental period) such that:
+                        $$ x(t) = x(t + T_0) \\quad \\text{for all } t $$
+                        For a discrete-time signal $x[n]$, it is periodic if there exists a positive integer $N_0$ (called the fundamental period) such that:
+                        $$ x[n] = x[n + N_0] \\quad \\text{for all integers } n $$
+                        Examples include sine waves, cosine waves, and square waves.
+                    </p>
+                    <h4 class="text-2xl font-semibold mb-3">Aperiodic Signals</h4>
+                    <p class="mb-4">
+                        An **aperiodic signal** (or non-periodic signal) is a signal that does not repeat itself at regular intervals. These signals typically have a finite duration or, if they extend infinitely, their pattern does not repeat.
+                        <br><br>
+                        Examples include a single pulse, an exponentially decaying signal, or random noise.
+                    </p>
+                `
+            },
+            'energy-power-detail': {
+                title: 'Energy vs Power Signals',
+                content: `
+                    <p class="text-lg mb-6">
+                        Signals can be classified based on their total energy or average power. A signal cannot be both an energy signal and a power signal.
+                    </p>
+                    <h4 class="text-2xl font-semibold mb-3">Energy Signals</h4>
+                    <p class="mb-4">
+                        An **energy signal** is a signal that has finite total energy ($E$) over its entire duration. For such signals, the average power ($P$) is zero. Energy signals are typically non-periodic and exist only for a finite duration.
+                        <br><br>
+                        The total energy $E$ for a continuous-time signal $x(t)$ is defined as:
+                        $$ E = \\int_{-\\infty}^{\\infty} |x(t)|^2 dt $$
+                        If $0 < E < \\infty$, then $x(t)$ is an energy signal.
+                        <br><br>
+                        Examples include a single rectangular pulse, an exponentially decaying signal, or any signal that eventually dies out.
+                    </p>
+                    <h4 class="2xl font-semibold mb-3">Power Signals</h4>
+                    <p class="mb-4">
+                        A **power signal** is a signal that has infinite total energy ($E$) but finite average power ($P$). Power signals are typically periodic signals or random signals that extend infinitely in time.
+                        <br><br>
+                        The average power $P$ for a continuous-time signal $x(t)$ is defined as:
+                        $$ P = \\lim_{T \\to \\infty} \\frac{1}{2T} \\int_{-T}^{T} |x(t)|^2 dt $$
+                        If $0 < P < \\infty$, then $x(t)$ is a power signal.
+                        <br><br>
+                        Examples include continuous sine waves, cosine waves, and periodic square waves.
+                    </p>
+                `
+            },
+            'causal-noncausal-detail': {
+                title: 'Causal vs Non-causal Signals',
+                content: `
+                    <p class="text-lg mb-6">
+                        This classification relates to a signal's existence and dependency on time.
+                    </p>
+                    <h4 class="text-2xl font-semibold mb-3">Causal Signals</h4>
+                    <p class="mb-4">
+                        A signal $x(t)$ is **causal** if it is zero for all negative time. This means the signal does not exist before $t=0$.
+                        $$ x(t) = 0 \\quad \\text{for } t < 0 $$
+                        In real-world systems, inputs and outputs are typically causal, as a system cannot respond to an input before it occurs. The unit step function is a classic example of a causal signal.
+                    </p>
+                    <h4 class="text-2xl font-semibold mb-3">Non-causal Signals</h4>
+                    <p class="mb-4">
+                        A **non-causal signal** is a signal that has non-zero values for negative time ($t < 0$). This implies that the signal exists before the "start" of observation or an event. While non-causal signals are not physically realizable in real-time systems (as they would require knowledge of the future), they are often used in theoretical analysis and in non-real-time processing (e.g., image processing where the entire signal is available).
+                        <br><br>
+                        An example is a signal that has values for $t < 0$, such as $x(t) = \\cos(t)$ for all $t$.
+                    </p>
+                `
+            },
+            'deterministic-random-detail': {
+                title: 'Deterministic vs Random Signals',
+                content: `
+                    <p class="text-lg mb-6">
+                        This classification distinguishes signals based on their predictability.
+                    </p>
+                    <h4 class="text-2xl font-semibold mb-3">Deterministic Signals</h4>
+                    <p class="mb-4">
+                        A **deterministic signal** is a signal whose value at any given time can be precisely predicted or described by a mathematical function. There is no uncertainty associated with its future values once its mathematical form is known.
+                        <br><br>
+                        Examples include sine waves ($x(t) = A \\sin(\\omega t + \\phi)$), step functions, and ramp functions. These signals are entirely predictable.
+                    </p>
+                    <h4 class="text-2xl font-semibold mb-3">Random Signals</h4>
+                    <p class="mb-4">
+                        A **random signal** (or stochastic signal) is a signal whose future values cannot be precisely predicted. Instead, they are described by statistical properties (like mean, variance, probability distribution). These signals contain inherent uncertainty.
+                        <br><br>
+                        Examples include thermal noise in electronic circuits, speech signals, and atmospheric noise. While individual values are unpredictable, their statistical characteristics might be constant over time (e.g., stationary random processes).
+                    </p>
+                `
+            },
+            'even-odd-detail': {
+                title: 'Even vs Odd Signals',
+                content: `
+                    <p class="text-lg mb-6">
+                        This classification is based on the symmetry properties of a signal. Any signal can be decomposed into an even and an odd part.
+                    </p>
+                    <h4 class="text-2xl font-semibold mb-3">Even Signals</h4>
+                    <p class="mb-4">
+                        An **even signal** is symmetric about the vertical axis (y-axis). Mathematically, for a continuous-time signal $x(t)$, it is even if:
+                        $$ x(t) = x(t + T_0) \\quad \\text{for all } t $$
+                        For a discrete-time signal $x[n]$, it is even if:
+                        $$ x[n] = x[-n] \\quad \\text{for all integers } n $$
+                        A cosine wave is a classic example of an even signal.
+                    </p>
+                    <h4 class="text-2xl font-semibold mb-3">Odd Signals</h4>
+                    <p class="mb-4">
+                        An **odd signal** is anti-symmetric about the origin. Mathematically, for a continuous-time signal $x(t)$, it is odd if:
+                        $$ x(t) = -x(-t) \\quad \\text{for all } t $$
+                        For a discrete-time signal $x[n]$, it is odd if:
+                        $$ x[n] = -x[-n] \\quad \\text{for all integers } n $$
+                        A sine wave is a classic example of an odd signal.
+                        <br><br>
+                        Any signal $x(t)$ can be uniquely decomposed into an even part $x_e(t)$ and an odd part $x_o(t)$:
+                        $$ x(t) = x_e(t) + x_o(t) $$
+                        where:
+                        $$ x_e(t) = \\frac{1}{2}[x(t) + x(-t)] $$
+                        $$ x_o(t) = \\frac{1}{2}[x(t) - x(-t)] $$
+                    </p>
+                `
+            }
+        };
+
+        function showClassificationDetail(detailId) {
+            const content = classificationDetailsContent[detailId];
+            if (content) {
+                modalTitle.innerHTML = content.title;
+                modalBody.innerHTML = content.content;
+
+                // Re-render MathJax after content is loaded
+                if (window.MathJax) {
+                    window.MathJax.typesetPromise([modalBody]).then(() => {
+                        console.log('MathJax typeset complete for modal.');
+                    }).catch((err) => console.error('MathJax typesetting error:', err));
+                }
+
+                modal.style.visibility = 'visible';
+                gsap.to(modal, { opacity: 1, duration: 0.3, ease: "power2.out" });
+                gsap.fromTo(modal.querySelector('.modal-content'),
+                    { scale: 0.8, opacity: 0 },
+                    { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" }
+                );
+            }
+        }
+
+        function hideClassificationDetail() {
+            gsap.to(modal.querySelector('.modal-content'),
+                { scale: 0.8, opacity: 0, duration: 0.3, ease: "power2.in" }
+            );
+            gsap.to(modal, {
+                opacity: 0,
+                duration: 0.4,
+                delay: 0.1,
+                ease: "power2.in",
+                onComplete: () => {
+                    modal.style.visibility = 'hidden';
+                    modalTitle.innerHTML = '';
+                    modalBody.innerHTML = '';
+                }
+            });
+        }
+
+        // Event listeners for classification cards
+        document.querySelectorAll('[data-detail-id]').forEach(card => {
+            card.addEventListener('click', function () {
+                const detailId = this.getAttribute('data-detail-id');
+                showClassificationDetail(detailId);
+            });
+        });
+
+        // Event listeners for modal close and back buttons
+        modalCloseBtn.addEventListener('click', hideClassificationDetail);
+        modalBackBtn.addEventListener('click', hideClassificationDetail);
+
+        // Practice Question Modal Logic
+        const questionModal = document.getElementById('question-detail-modal');
+        const questionModalTitle = document.getElementById('question-modal-title');
+        const questionTextDisplay = document.getElementById('question-text-display');
+        const answerTextDisplay = document.getElementById('answer-text-display');
+        // const showAnswerBtn = document.getElementById('show-answer-btn'); // This button is removed
+        const questionModalCloseBtn = document.getElementById('question-modal-close-btn');
+        const questionModalBackBtn = document.getElementById('question-modal-back-btn');
+        const answerDisplayDiv = document.getElementById('answer-display');
+        const questionModalBody = document.getElementById('question-modal-body');
+
+
+        // Content for practice questions (from PDF)
+        const practiceQuestionsContent = {
+            'q1': {
+                question: 'Define and sketch impulse and unit impulse signal.',
+                answer: `The impulse signal, denoted as $\\delta(t)$, is characterized by an infinite magnitude and zero duration, yet it possesses a finite area, typically denoted as A. The unit impulse signal is a specific instance where this area A is equal to 1. It is mathematically defined as $\\delta(t)=\\infty$ for $t=0$, and $\\delta(t)=0$ for $t\\ne0$, with the integral over all time, $\\int_{-\\infty}^{\\infty} \\delta(t)dt$, equaling 1. Graphically, an impulse signal is represented by a vertical arrow positioned at $t=0$. A label, 'A' or '1', is placed adjacent to the arrow to indicate its area.`
+            },
+            'q2': {
+                question: 'Define and sketch step and unit step signal.',
+                answer: `The step signal, $x(t)$, is defined as having an amplitude A for all times $t\\ge0$, and being zero for $t<0$. The unit step signal, $u(t)$, is a specific form of the step signal where the amplitude A is equal to 1. This signal is depicted as a horizontal line at an amplitude of $A$ or '1', originating from $t=0$ and extending indefinitely to the right. For $t<0,$ the signal value is zero.`
+            },
+            'q3': {
+                question: 'Define and sketch ramp signal.',
+                answer: `The ramp signal, $x(t)$, is defined as At for all times $t\\ge0$, and zero for $t<0$. The unit ramp signal is a special case where A is equal to 1. The signal is graphically represented by a line originating from the origin ($t=0, x(t)=0)$ with a slope of 'A' or '1' for $t\\ge0$. For $t<0$, the signal value is zero.`
+            },
+            'q4': {
+                question: 'Define and sketch sinc signal.',
+                answer: `The Sinc signal, $x(t)$, is defined by the mathematical expression $\\sin(\\pi t)/(\\pi t)$ valid for all real values of t from $-\\infty$ to $+\\infty$. The waveform of a Sinc signal is characterized by decaying oscillations. It exhibits a peak amplitude at $t=0$ and crosses the zero axis at integer multiples of $\\pi$.`
+            },
+            'q5': {
+                question: 'Define and sketch signum signal.',
+                answer: `The Signum signal, $x(t)$, is defined as the sign of its independent variable t. Specifically, $x(t)=1$ for $t>0$, $x(t)=0$ for $t=0$, and $x(t)=-1$ for $t<0$. This signal is represented as a step function: it has an amplitude of 1 for $t>0$, an amplitude of -1 for $t<0$, and is zero at $t=0$.`
+            },
+            'q6': {
+                question: 'Prove that sinc (0) = 1.',
+                answer: `The sinc function is formally defined as $\\sin(t)/t$. To determine its value at $t=0$, one must evaluate the limit of $\\sin(t)/t$ as t approaches 0. This expression represents an indeterminate form (0/0), necessitating the application of L'Hospital's rule. By differentiating the numerator $(\\sin(t))$ with respect to t, one obtains $\\cos(t)$, and differentiating the denominator (t) yields 1. Thus, the limit transforms to the limit of $\\cos(t)/1$ as t approaches 0. Substituting $t=0$ into this simplified expression results in $\\cos(0)/1$, which evaluates to $1/1=1$. Therefore, $\\text{sinc}(0)=1$.`
+            },
+            'q7': {
+                question: 'Define deterministic and nondeterministic signals. Give examples.',
+                answer: `**Deterministic Signal:** A signal is classified as deterministic if its behavior can be entirely and precisely described by a mathematical equation. Its future values are predictable based on its mathematical form. Examples include the step signal (e.g., $x(t)=A u(t)$), the ramp signal (e.g., $x(t)=At u(t)$), exponential signals (e.g., $x(t)=A e^{bt} u(t)$), and sinusoidal signals (e.g., $x(t)=A \\sin(\\omega_0 t)$).
+                        **Nondeterministic Signal:** In contrast, a nondeterministic signal possesses characteristics that are random in nature, meaning its future values cannot be precisely predicted by a mathematical formula. A common example is noise signals originating from various sources, such as electronic amplifiers, oscillators, or radio receivers.`
+            },
+            'q8': {
+                question: 'Define periodic and nonperiodic signals. Give examples.',
+                answer: `**Periodic Signal:** A continuous-time signal, $x(t)$ is defined as periodic if it exhibits a repeating pattern over a specific interval of time. This property is mathematically expressed by the condition $x(t+T)=x(t)$, where T represents the fundamental time period—the smallest positive value for which the condition holds. Examples include sinusoidal signals (e.g., $A \\sin(\\omega_0 t)$) and complex exponential signals (e.g., $A e^{j\\omega_0 t}$).
+                        **Nonperiodic (Aperiodic) Signal:** A signal that does not satisfy the condition $x(t+T)=x(t)$ for any positive value of T is classified as an aperiodic or nonperiodic signal. Examples include exponentially decaying signals (e.g., $A e^{-at} u(t)$) or any single, non-repeating pulse.`
+            },
+            'q9': {
+                question: 'Define energy of a continuous time signal. Give examples.',
+                answer: `The energy, $E$, of a continuous-time signal $x(t)$ is quantified as the limit of the integral of the squared magnitude of the signal as the integration interval extends to infinity. It is expressed in joules: $E=\\lim_{T\\rightarrow\\infty}\\int_{-T}^{T}|x(t)|^2 dt$. A signal is categorized as an energy signal if its total energy E is finite and non-zero ($0<E<\\infty$). Examples typically include nonperiodic signals that decay over time, such as an exponentially decaying signal (e.g., $e^{-at} u(t)$).`
+            },
+            'q10': {
+                question: 'Define power of a continuous time signal. Give examples.',
+                answer: `The average power, $P$, of a continuous-time signal $x(t)$ is defined as the limit of the average of the squared magnitude of the signal over an infinitely long interval. It is expressed in watts: $P=\\lim_{T\\rightarrow\\infty}\\frac{1}{2T}\\int_{-T}^{T}|x(t)|^2 dt$. A signal is classified as a power signal if its average power P is finite and non-zero ($0<P<\\infty$). Periodic signals are common examples of power signals, such as sinusoidal signals (e.g., $A \\sin(\\omega_0 t)$) and complex exponential signals (e.g., $A e^{j\\omega_0 t}$).`
+            },
+            'q11': {
+                question: 'Prove that power of an energy signal is zero.',
+                answer: `For an energy signal, the total energy E is a finite, non-zero value ($0<E<\\infty$). The average power P is defined as $P=\\lim_{T\\rightarrow\\infty}\\frac{1}{2T}E$. As the time interval T approaches infinity, the term $\\frac{1}{2T}$ approaches zero. Consequently, $P=E \\times 0 = 0$. This demonstrates that the average power of any energy signal is zero.`
+            },
+            'q12': {
+                question: 'Prove that energy of a power signal is infinite.',
+                answer: `For a power signal, the average power P is a finite, non-zero value ($0<P<\\infty$). From the relationship between power and energy, $P=\\lim_{T\\rightarrow\\infty}\\frac{1}{2T}E$, it follows that $E=\\lim_{T\\rightarrow\\infty}(2T \\times P)$. Since P is a finite, non-zero constant, as T approaches infinity, the product $(2T \\times P)$ also approaches infinity. Therefore, the total energy E of a power signal is infinite.`
+            },
+            'q13': {
+                question: 'Determine the energy and power of a unit step signal.',
+                answer: `The unit step signal, $u(t)$, is defined as 1 for $t\\ge0$ and 0 for $t<0$. To calculate its energy, $E=\\int_{0}^{T}1^2 dt = T$. As T approaches infinity, E also approaches infinity. For its average power, $P=\\lim_{T\\rightarrow\\infty}\\frac{1}{2T}\\int_{0}^{T}1^2 dt=\\lim_{T\\rightarrow\\infty}\\frac{T}{2T} = \\frac{1}{2}$. Since the energy is infinite and the power is finite and non-zero, the unit step signal is classified as a power signal.`
+            },
+            'q14': {
+                question: 'Define causal and noncausal signals. Give examples.',
+                answer: `**Causal Signal:** A signal, $x(t)$ is defined as causal if its values are non-zero only for times $t\\ge0$. This implies that $x(t)=0$ for all $t<0$. Common examples include the unit step signal ($u(t)$) and exponential signals that begin at or after $t=0$ (e.g., $A e^{bt} u(t)$).
+                        **Noncausal Signal:** A signal, $x(t)$, is classified as noncausal if its values are non-zero for times $t<0$. This can mean the signal is defined for $t\\le0$, or for all t (i.e., both $t\\le0$ and $t>0$). Examples include an exponential signal defined for all time (e.g., $A e^{bt}$) or a complex exponential signal defined for all time (e.g., $A e^{j\\omega_0 t}$). A specific subtype of noncausal signals is an anticausal signal, which is defined exclusively for $t\\le0$.`
+            },
+            'q15': {
+                question: 'Define the impulse and unit step signal (DT).',
+                answer: `**Impulse Signal (Unit Sample Sequence):** The discrete impulse signal, denoted as $\\delta[n]$, is defined as having a value of 1 exclusively at $n = 0$, and a value of 0 for all other integer values of $n$.
+                        **Unit Step Signal:** The discrete unit step signal, denoted as $u[n]$, is defined as having a value of 1 for all integer values of $n \\ge 0$, and a value of 0 for all integer values of $n < 0$.`
+            },
+            'q16': {
+                question: 'When a discrete time signal is called periodic?',
+                answer: `A discrete-time signal $x[n]$ is defined as periodic with a periodicity of $N$ samples (where $N$ is a positive integer) if the condition $x[n + N] = x[n]$ holds true for all integer values of $n$. The smallest positive integer value of $N$ for which this condition is satisfied is referred to as the fundamental period.`
+            },
+            'q17': {
+                question: 'What are energy and power signals (DT)?',
+                answer: `**Energy Signal:** A discrete-time signal $x[n]$ is classified as an energy signal if its total energy, $E$, is finite and non-zero. The total energy is computed as the sum of the squared magnitudes of all samples: $E = \\sum_{n = -\\infty}^{\\infty} |x[n]|^2$. For energy signals, the average power $P$ is zero.
+                        **Power Signal:** A discrete-time signal $x[n]$ is classified as a power signal if its average power, $P$, is finite and non-zero. The average power $P$ is computed as: $P = \\lim_{N\\rightarrow\\infty}\\frac{1}{2N+1}\\sum_{n = -N}^{N} |x[n]|^2$.`
+            }
+        };
+
+        function showQuestionDetail(questionId) {
+            const content = practiceQuestionsContent[questionId];
+            if (content) {
+                questionModalTitle.innerHTML = `Question ${questionId.substring(1).toUpperCase()}`;
+                questionTextDisplay.innerHTML = content.question;
+                answerTextDisplay.innerHTML = content.answer;
+
+                // The answer is now always visible, so no need to hide/show
+                answerDisplayDiv.classList.remove('hidden');
+                // showAnswerBtn.classList.add('hidden'); // This button is removed
+
+                // Re-render MathJax after content is loaded
+                if (window.MathJax) {
+                    window.MathJax.typesetPromise([questionModalBody]).then(() => {
+                        console.log('MathJax typeset complete for question modal.');
+                    }).catch((err) => console.error('MathJax typesetting error:', err));
+                }
+
+                questionModal.style.visibility = 'visible';
+                gsap.to(questionModal, { opacity: 1, duration: 0.3, ease: "power2.out" });
+                gsap.fromTo(questionModal.querySelector('.modal-content'),
+                    { scale: 0.8, opacity: 0 },
+                    { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" }
+                );
+            }
+        }
+
+        function hideQuestionDetail() {
+            gsap.to(questionModal.querySelector('.modal-content'),
+                { scale: 0.8, opacity: 0, duration: 0.3, ease: "power2.in" }
+            );
+            gsap.to(questionModal, {
+                opacity: 0,
+                duration: 0.4,
+                delay: 0.1,
+                ease: "power2.in",
+                onComplete: () => {
+                    questionModal.style.visibility = 'hidden';
+                    questionModalTitle.innerHTML = '';
+                    questionTextDisplay.innerHTML = '';
+                    answerTextDisplay.innerHTML = '';
+                }
+            });
+        }
+
+        // Event listener for "Show Answer" button inside question modal - REMOVED
+        /*
+        showAnswerBtn.addEventListener('click', () => {
+            answerDisplayDiv.classList.remove('hidden');
+            showAnswerBtn.classList.add('hidden');
+            if (window.MathJax) {
+                window.MathJax.typesetPromise([answerTextDisplay]).then(() => {
+                    console.log('MathJax typeset complete for answer display.');
+                }).catch((err) => console.error('MathJax typesetting error for answer:', err));
+            }
+        });
+        */
+
+        // Event listeners for question modal close and back buttons
+        questionModalCloseBtn.addEventListener('click', hideQuestionDetail);
+        questionModalBackBtn.addEventListener('click', hideQuestionDetail);
+
+        // Dynamically load practice questions
+        const questionCardsContainer = document.getElementById('question-cards');
+        Object.keys(practiceQuestionsContent).forEach(key => {
+            const question = practiceQuestionsContent[key].question;
+            const card = document.createElement('div');
+            card.classList.add('bg-white', 'dark:bg-gray-800', 'rounded-xl', 'shadow-2xl', 'p-6', 'hover:shadow-xl', 'transform', 'hover:scale-105', 'transition', 'ripple-button', 'cursor-pointer');
+            card.setAttribute('data-question-id', key);
+            card.innerHTML = `<h3 class="font-semibold text-gray-900 dark:text-white mb-2">${key.toUpperCase()}: ${question}</h3>`;
+            questionCardsContainer.appendChild(card);
+
+            card.addEventListener('click', function () {
+                const questionId = this.getAttribute('data-question-id');
+                showQuestionDetail(questionId);
+            });
+        });
+
+        // Initialize animations and effects
+        createParticles();
+
+        // Animate the logo on page load
+        gsap.from('#logo', {
+            duration: 1.5,
+            opacity: 1, /* Animate to full opacity */
+            y: 0, /* Animate to original position */
+            ease: "power2.out", /* Smoother ease */
+            onStart: function () {
+                document.getElementById('logo').style.visibility = 'visible';
+            }
+        });
+
+        // Setup GSAP ScrollTrigger
+        gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+
+        // Create animations for each section
+        gsap.utils.toArray('section').forEach((section, i) => {
+            gsap.from(section, {
+                scrollTrigger: {
+                    trigger: section,
+                    start: 'top 90%',
+                    end: 'bottom 20%',
+                    toggleActions: 'play none none reset'
+                },
+                opacity: 0,
+                y: 50,
+                duration: 0.8,
+                delay: i * 0.1
+            });
+        });
+
+        // Create floating animation for cards
+        gsap.utils.toArray('.ripple-button').forEach((card, i) => {
+            gsap.to(card, {
+                y: 5,
+                repeat: -1,
+                yoyo: true,
+                duration: 2 + i * 0.3,
+                ease: "sine.inOut"
+            });
+        });
+    </script>
+</body>
+
+</html>
