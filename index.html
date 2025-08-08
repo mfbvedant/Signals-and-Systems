@@ -5,23 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Interactive Signal Processing Explorer</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- AOS CSS -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- GSAP -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/ScrollTrigger.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/ScrollToPlugin.min.js"></script>
-    <!-- AOS JS -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <!-- MathJax for LaTeX rendering -->
     <script type="text/javascript" id="MathJax-script" async
         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
         </script>
-    <!-- Additional styles -->
     <style>
         /* Global styles and transitions */
         html {
@@ -85,32 +78,28 @@
             }
         }
 
-        /* Custom cursor */
-        .cursor-dot {
+        /* Custom cursor - now controlled by GSAP */
+        .cursor-dot,
+        .cursor-outline {
             position: fixed;
             top: 0;
             left: 0;
-            width: 8px;
-            height: 8px;
             border-radius: 50%;
-            background-color: #3b82f6;
             pointer-events: none;
             z-index: 9999;
             transform: translate(-50%, -50%);
         }
 
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #3b82f6;
+        }
+
         .cursor-outline {
-            position: fixed;
-            top: 0;
-            left: 0;
             width: 40px;
             height: 40px;
             border: 2px solid rgba(59, 130, 246, 0.5);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9998;
-            transform: translate(-50%, -50%);
-            transition: all 0.1s ease;
         }
 
         /* Section highlight */
@@ -198,14 +187,11 @@
             z-index: 1000;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.3s ease;
         }
 
         .modal-content {
             background-color: white;
-            /* Default light mode background */
             color: #000000;
-            /* Pure black for light mode */
             padding: 2.5rem;
             border-radius: 1.5rem;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -216,14 +202,11 @@
             position: relative;
             transform: scale(0.8);
             opacity: 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
         }
 
         .dark .modal-content {
             background-color: #000000;
-            /* Changed to black for dark mode */
             color: #f3f4f6;
-            /* Lighter text for dark mode, similar to text-gray-100 */
         }
 
         .modal-close-btn {
@@ -281,11 +264,9 @@
 </head>
 
 <body class="font-sans antialiased text-black dark:text-gray-50 bg-white dark:bg-gray-900">
-    <!-- Custom cursor -->
     <div class="cursor-dot"></div>
     <div class="cursor-outline"></div>
 
-    <!-- Navigation -->
     <nav class="fixed top-0 w-full bg-white dark:bg-gray-900 shadow-md z-50">
         <div class="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between">
             <h1 class="text-2xl font-semibold text-gray-900 dark:text-white" id="logo">Signal Processing Explorer</h1>
@@ -303,24 +284,25 @@
                 <a href="#concept-clarifier"
                     class="nav-link text-gray-700 dark:text-gray-300 hover:text-gray-300 transition btn-hover px-3 py-1 rounded">Clarifier</a>
             </div>
-            <!-- Dark/Light Mode Toggle -->
             <button id="theme-toggle" aria-label="Toggle Dark Mode"
                 class="p-2 bg-gray-200 dark:bg-gray-700 rounded-full ripple-button btn-hover">
-                <svg id="theme-toggle-dark-icon" class="w-6 h-6 hidden dark:block" fill="currentColor"
-                    viewBox="0 0 20 20">
-                    <path d="M10 2a8 8 0 0 0 0 16v-16z" />
+                <svg id="theme-toggle-dark-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                    </path>
                 </svg>
-                <svg id="theme-toggle-light-icon" class="w-6 h-6 block dark:hidden" fill="currentColor"
-                    viewBox="0 0 20 20">
-                    <path
-                        d="M10 1v2m0 14v2m8-10h2M1 10H3m14.66 4.66l1.414-1.414M3.754 16.246l-1.414-1.414M19 10h-2M1 10H3m16.66 4.66l-1.414-1.414M3.754 3.754l-1.414 1.414" />
+                <svg id="theme-toggle-light-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                    </path>
                 </svg>
             </button>
         </div>
     </nav>
 
     <main class="pt-20">
-        <!-- Signal Explorer Section -->
         <section id="signal-explorer"
             class="min-h-screen py-20 px-5 bg-white dark:bg-gray-800 relative overflow-hidden">
             <div class="section-highlight"></div>
@@ -330,32 +312,49 @@
                 <p data-aos="fade-up" class="text-lg text-black dark:text-gray-300 mb-8">Generate and visualize
                     signals. Adjust parameters to explore different waveforms.</p>
                 <div data-aos="zoom-in" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6">
+                    <div class="mb-6">
+                        <label for="signalTypeSelect"
+                            class="block font-medium mb-2 text-black dark:text-gray-200">Select Signal Type</label>
+                        <select id="signalTypeSelect"
+                            class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="sine">Sine Wave</option>
+                            <option value="step">Unit Step</option>
+                            <option value="ramp">Unit Ramp</option>
+                            <option value="exponential">Exponential</option>
+                            <option value="pulse">Rectangular Pulse</option>
+                            <option value="impulse">Impulse Function</option>
+                        </select>
+                    </div>
+
                     <canvas id="chartExplorer"></canvas>
+
                     <div class="mt-6 space-y-4">
-                        <div class="flex items-center space-x-4">
-                            <label class="font-medium w-24 text-black dark:text-gray-200">Amplitude</label>
-                            <input id="ampSlider" type="range" min="0" max="10" step="0.1" value="1"
-                                class="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer ripple-button" />
-                            <span id="ampValue" class="w-12 text-center text-black dark:text-gray-100">1.0</span>
+                        <div id="param1-container" class="flex items-center space-x-4">
+                            <label id="param1-label"
+                                class="font-medium w-24 text-black dark:text-gray-200">Amplitude</label>
+                            <input id="param1-slider" type="range" min="0" max="10" step="0.1" value="1"
+                                class="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer" />
+                            <span id="param1-value" class="w-12 text-center text-black dark:text-gray-100">1.0</span>
                         </div>
-                        <div class="flex items-center space-x-4">
-                            <label class="font-medium w-24 text-black dark:text-gray-200">Frequency</label>
-                            <input id="freqSlider" type="range" min="1" max="10" step="0.1" value="1"
-                                class="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer ripple-button" />
-                            <span id="freqValue" class="w-12 text-center text-black dark:text-gray-100">1.0</span>
+                        <div id="param2-container" class="flex items-center space-x-4">
+                            <label id="param2-label"
+                                class="font-medium w-24 text-black dark:text-gray-200">Frequency</label>
+                            <input id="param2-slider" type="range" min="1" max="10" step="0.1" value="1"
+                                class="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer" />
+                            <span id="param2-value" class="w-12 text-center text-black dark:text-gray-100">1.0</span>
                         </div>
-                        <div class="flex items-center space-x-4">
-                            <label class="font-medium w-24 text-black dark:text-gray-200">Phase</label>
-                            <input id="phaseSlider" type="range" min="0" max="6.28" step="0.1" value="0"
-                                class="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer ripple-button" />
-                            <span id="phaseValue" class="w-12 text-center text-black dark:text-gray-100">0.0</span>
+                        <div id="param3-container" class="flex items-center space-x-4">
+                            <label id="param3-label"
+                                class="font-medium w-24 text-black dark:text-gray-200">Phase</label>
+                            <input id="param3-slider" type="range" min="0" max="6.28" step="0.1" value="0"
+                                class="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer" />
+                            <span id="param3-value" class="w-12 text-center text-black dark:text-gray-100">0.0</span>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Signal Operations Section -->
         <section id="signal-operations"
             class="min-h-screen py-20 px-5 bg-gray-50 dark:bg-gray-700 relative overflow-hidden">
             <div class="section-highlight"></div>
@@ -377,9 +376,8 @@
             </div>
         </section>
 
-        <!-- Signal Classifications Section -->
         <section id="signal-classifications"
-            class="min-h-screen py-20 px-5 bg-white dark:bg-gray-800 relative overflow-hidden">
+            class="min-h-screen py-20 px-5 bg-gray-50 dark:bg-gray-700 relative overflow-hidden">
             <div class="section-highlight"></div>
             <div class="max-w-4xl mx-auto relative z-10">
                 <h2 data-aos="fade-down" class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
@@ -387,47 +385,53 @@
                 <p data-aos="fade-up" class="text-lg text-black dark:text-gray-300 mb-8">Explore different types of
                     signals: analog vs digital, periodic vs aperiodic, and more.</p>
 
-                <!-- Main Classification Cards -->
-                <div id="classification-cards" data-aos="fade-up" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
+                <div id="classification-cards" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div data-aos="fade-up" data-aos-delay="100"
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
                         data-detail-id="analog-digital-detail">
-                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Analog vs Digital</h3>
+                        <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-2">Analog vs Digital</h3>
                         <p class="text-black dark:text-gray-300">Continuous vs discrete signals.</p>
                     </div>
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
+                    <div data-aos="fade-up" data-aos-delay="200"
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
                         data-detail-id="periodic-aperiodic-detail">
-                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Periodic vs Aperiodic</h3>
+                        <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-2">Periodic vs Aperiodic
+                        </h3>
                         <p class="text-black dark:text-gray-300">Repeating vs non-repeating waveforms.</p>
                     </div>
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
+                    <div data-aos="fade-up" data-aos-delay="300"
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
                         data-detail-id="energy-power-detail">
-                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Energy vs Power</h3>
+                        <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-2">Energy vs Power</h3>
                         <p class="text-black dark:text-gray-300">Signals classified by their total energy or average
                             power.</p>
                     </div>
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
+                    <div data-aos="fade-up" data-aos-delay="400"
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
                         data-detail-id="causal-noncausal-detail">
-                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Causal vs Non-causal</h3>
+                        <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-2">Causal vs Non-causal
+                        </h3>
                         <p class="text-black dark:text-gray-300">Dependency on past, present, or future inputs.</p>
                     </div>
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
+                    <div data-aos="fade-up" data-aos-delay="500"
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
                         data-detail-id="deterministic-random-detail">
-                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Deterministic vs Random
+                        <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-2">Deterministic vs Random
                         </h3>
                         <p class="text-black dark:text-gray-300">Predictable vs unpredictable signals.</p>
                     </div>
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
+                    <div data-aos="fade-up" data-aos-delay="600"
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer"
                         data-detail-id="even-odd-detail">
-                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Even vs Odd</h3>
+                        <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-2">Even vs Odd</h3>
                         <p class="text-black dark:text-gray-300">Signals based on their symmetry properties.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Analog to Digital Section -->
         <section id="analog-to-digital"
-            class="min-h-screen py-20 px-5 bg-gray-50 dark:bg-gray-700 relative overflow-hidden">
+            class="min-h-screen py-20 px-5 bg-white dark:bg-gray-800 relative overflow-hidden">
             <div class="section-highlight"></div>
             <div class="max-w-4xl mx-auto relative z-10">
                 <h2 data-aos="fade-down" class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
@@ -447,24 +451,21 @@
             </div>
         </section>
 
-        <!-- Practice Questions Section -->
         <section id="practice-questions"
-            class="min-h-screen py-20 px-5 bg-white dark:bg-gray-800 relative overflow-hidden">
+            class="min-h-screen py-20 px-5 bg-gray-50 dark:bg-gray-700 relative overflow-hidden">
             <div class="section-highlight"></div>
             <div class="max-w-4xl mx-auto relative z-10">
                 <h2 data-aos="fade-down" class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
                     Practice Questions</h2>
                 <p data-aos="fade-up" class="text-lg text-black dark:text-gray-300 mb-8">Test your understanding with
                     interactive practice questions. Click to reveal answers and explanations.</p>
-                <div id="question-cards" data-aos="fade-up" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Questions will be dynamically loaded here -->
+                <div id="question-cards" class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 </div>
             </div>
         </section>
 
-        <!-- Concept Clarifier Section -->
         <section id="concept-clarifier"
-            class="min-h-screen py-20 px-5 bg-gray-50 dark:bg-gray-700 relative overflow-hidden">
+            class="min-h-screen py-20 px-5 bg-white dark:bg-gray-800 relative overflow-hidden">
             <div class="section-highlight"></div>
             <div class="max-w-4xl mx-auto relative z-10">
                 <h2 data-aos="fade-down" class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
@@ -485,25 +486,21 @@
             </div>
         </section>
 
-        <!-- Footer -->
         <footer class="py-10 text-center bg-white dark:bg-gray-900">
             <p class="text-gray-600 dark:text-gray-400">Interactive Signal Processing Explorer &copy; 2025</p>
         </footer>
     </main>
 
-    <!-- Classification Detail Modal -->
     <div id="classification-detail-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="modal-close-btn" id="modal-close-btn">&times;</button>
             <h3 id="modal-title" class="text-black dark:text-white text-3xl font-bold mb-4"></h3>
             <div id="modal-body" class="text-black dark:text-gray-50">
-                <!-- Content will be injected here -->
             </div>
             <button class="apple-button-secondary mt-6" id="modal-back-btn">Back to Classifications</button>
         </div>
     </div>
 
-    <!-- Question Detail Modal -->
     <div id="question-detail-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="modal-close-btn" id="question-modal-close-btn">&times;</button>
@@ -511,8 +508,7 @@
             <div id="question-modal-body" class="text-black dark:text-gray-50">
                 <p class="font-semibold mb-2">Question:</p>
                 <p id="question-text-display" class="mb-6"></p>
-                <!-- The "Show Answer" button has been removed -->
-                <div id="answer-display"> <!-- Removed 'hidden' class here -->
+                <div id="answer-display">
                     <p class="font-semibold mb-2">Answer:</p>
                     <p id="answer-text-display"></p>
                 </div>
@@ -521,22 +517,148 @@
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Tooltip for displaying chart values on click -->
+    <div id="value-tooltip"
+        class="hidden absolute bg-gray-900 dark:bg-gray-700 text-white text-sm rounded-md px-3 py-1.5 shadow-lg z-[10000]"
+        style="pointer-events: none;"></div>
+
     <script>
-        // Initialize AOS (Animate On Scroll)
+        // --- START OF ANIMATION & INTERACTIVITY SCRIPT ---
         AOS.init({ once: true, duration: 800 });
 
-        // Custom cursor
+        // Initialize GSAP and plugins
+        gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+
+        // --- 1. SMOOTH CURSOR ANIMATION ---
         const cursorDot = document.querySelector('.cursor-dot');
         const cursorOutline = document.querySelector('.cursor-outline');
 
-        window.addEventListener('mousemove', function (e) {
-            cursorDot.style.left = `${e.clientX}px`;
-            cursorDot.style.top = `${e.clientY}px`;
+        // Use GSAP's quickTo for ultra-smooth, performant cursor tracking
+        const dotX = gsap.quickTo(cursorDot, "x", { duration: 0.3, ease: "power3" });
+        const dotY = gsap.quickTo(cursorDot, "y", { duration: 0.3, ease: "power3" });
+        const outlineX = gsap.quickTo(cursorOutline, "x", { duration: 0.7, ease: "power3" });
+        const outlineY = gsap.quickTo(cursorOutline, "y", { duration: 0.7, ease: "power3" });
 
-            cursorOutline.style.left = `${e.clientX}px`;
-            cursorOutline.style.top = `${e.clientY}px`;
-            cursorOutline.style.transition = 'all 0.05s ease';
+        window.addEventListener('mousemove', e => {
+            dotX(e.clientX);
+            dotY(e.clientY);
+            outlineX(e.clientX);
+            outlineY(e.clientY);
+        });
+
+        // Cursor hover effect for interactive elements
+        document.querySelectorAll('a, button, .ripple-button, [data-detail-id], [data-question-id], select').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                gsap.to(cursorOutline, {
+                    scale: 2.5,
+                    borderColor: 'rgba(59, 130, 246, 0.8)',
+                    duration: 0.4,
+                    ease: 'power2.out'
+                });
+            });
+            el.addEventListener('mouseleave', () => {
+                gsap.to(cursorOutline, {
+                    scale: 1,
+                    borderColor: 'rgba(59, 130, 246, 0.5)',
+                    duration: 0.3,
+                    ease: 'power2.out'
+                });
+            });
+        });
+
+        // --- 2. FLUID PAGE LOAD AND SCROLL ANIMATIONS ---
+
+        // Animate the logo on page load
+        gsap.fromTo('#logo',
+            { autoAlpha: 0, y: -20 },
+            {
+                autoAlpha: 1,
+                y: 0,
+                duration: 1.5,
+                ease: "expo.out",
+                delay: 0.5,
+                onStart: () => document.getElementById('logo').style.visibility = 'visible'
+            }
+        );
+
+        // Animate nav links
+        gsap.from('.nav-link', {
+            duration: 1,
+            y: -20,
+            opacity: 0,
+            stagger: 0.1,
+            ease: 'expo.out',
+            delay: 0.8
+        });
+
+        // General purpose scroll-triggered fade-in animation for non-AOS elements
+        gsap.utils.toArray('.gsap-reveal').forEach(elem => {
+            gsap.fromTo(elem,
+                { y: 50, autoAlpha: 0 },
+                {
+                    y: 0,
+                    autoAlpha: 1,
+                    duration: 1.2,
+                    ease: 'expo.out',
+                    scrollTrigger: {
+                        trigger: elem,
+                        start: 'top 90%',
+                        toggleActions: 'play none none reverse'
+                    }
+                }
+            );
+        });
+
+        // --- 3. ENHANCED INTERACTIVITY AND EFFECTS ---
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetSection = document.querySelector(targetId);
+                gsap.to(window, {
+                    duration: 1.5,
+                    scrollTo: { y: targetSection, offsetY: 80 },
+                    ease: "power3.inOut"
+                });
+            });
+        });
+
+        // Dark/Light mode toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const darkIcon = document.getElementById('theme-toggle-dark-icon');
+        const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                darkIcon.style.display = 'block';
+                lightIcon.style.display = 'none';
+            } else {
+                document.documentElement.classList.remove('dark');
+                darkIcon.style.display = 'none';
+                lightIcon.style.display = 'block';
+            }
+        }
+
+        // Check local storage for theme on load
+        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        applyTheme(savedTheme);
+
+        themeToggle.addEventListener('click', function () {
+            gsap.to(themeToggle, {
+                rotationY: '+=180',
+                duration: 0.7,
+                ease: 'back.inOut(1.7)',
+                onComplete: function () {
+                    const isDark = document.documentElement.classList.toggle('dark');
+                    const newTheme = isDark ? 'dark' : 'light';
+                    applyTheme(newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    // Add logic to update chart colors if needed
+                }
+            });
         });
 
         // Ripple effect for buttons
@@ -563,298 +685,244 @@
             });
         });
 
-        // Particle effect for hero section
-        function createParticles() {
-            const section = document.getElementById('signal-explorer');
-            const particleCount = 30;
-
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-
-                const size = Math.random() * 10 + 5;
-                const posX = Math.random() * 100;
-                const posY = Math.random() * 100;
-                const animationDuration = Math.random() * 10 + 5;
-
-                particle.style.width = `${size}px`;
-                particle.style.height = `${size}px`;
-                particle.style.left = `${posX}%`;
-                particle.style.top = `${posY}%`;
-                particle.style.opacity = Math.random() * 0.5 + 0.1;
-                particle.style.animation = `float ${animationDuration}s infinite ease-in-out`;
-                particle.style.animationDelay = `${Math.random() * 5}s`;
-
-                section.appendChild(particle);
-            }
-        }
-
-        // Smooth scroll for navigation
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function (e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('href');
-                const targetSection = document.querySelector(targetId);
-
-                // Calculate scroll position, accounting for fixed header
-                const scrollY = targetSection.offsetTop - 80;
-
-                gsap.to(window, {
-                    duration: 1,
-                    scrollTo: {
-                        y: scrollY,
-                        offsetY: 0
-                    },
-                    ease: "power2.inOut"
-                });
-            });
-        });
-
-        // Dark/Light mode toggle
-        const themeToggle = document.getElementById('theme-toggle');
-        const darkIcon = document.getElementById('theme-toggle-dark-icon');
-        const lightIcon = document.getElementById('theme-toggle-light-icon');
-
-        // Check local storage for theme
-        if (localStorage.getItem('theme') === 'dark' ||
-            (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-            darkIcon.classList.remove('hidden');
-            darkIcon.classList.add('block');
-            lightIcon.classList.remove('block');
-            lightIcon.classList.add('hidden');
-        }
-
-        themeToggle.addEventListener('click', function () {
-            // Flip animation
-            gsap.to(themeToggle, {
-                rotationY: '+=180',
-                duration: 0.5,
-                onComplete: function () {
-                    document.documentElement.classList.toggle('dark');
-                    darkIcon.classList.toggle('hidden');
-                    darkIcon.classList.toggle('block');
-                    lightIcon.classList.toggle('hidden');
-                    lightIcon.classList.toggle('block');
-
-                    if (document.documentElement.classList.contains('dark')) {
-                        localStorage.setItem('theme', 'dark');
-                    } else {
-                        localStorage.setItem('theme', 'light');
-                    }
-                }
-            });
-        });
+        // --- 4. CHART & MODAL LOGIC (WITH ANIMATION REFINEMENTS) ---
 
         // Chart.js for Signal Explorer
         const ctxExplorer = document.getElementById('chartExplorer').getContext('2d');
-        let amp = parseFloat(document.getElementById('ampSlider').value);
-        let freq = parseFloat(document.getElementById('freqSlider').value);
-        let phase = parseFloat(document.getElementById('phaseSlider').value);
-        const dataLength = 100;
-
-        let explorerData = Array.from({ length: dataLength }, (_, i) => {
-            let x = (i / dataLength) * 4 * Math.PI;
-            return amp * Math.sin(freq * x + phase);
-        });
+        const signalTypeSelect = document.getElementById('signalTypeSelect');
+        const param1 = { container: document.getElementById('param1-container'), label: document.getElementById('param1-label'), slider: document.getElementById('param1-slider'), value: document.getElementById('param1-value') };
+        const param2 = { container: document.getElementById('param2-container'), label: document.getElementById('param2-label'), slider: document.getElementById('param2-slider'), value: document.getElementById('param2-value') };
+        const param3 = { container: document.getElementById('param3-container'), label: document.getElementById('param3-label'), slider: document.getElementById('param3-slider'), value: document.getElementById('param3-value') };
+        const allParams = [param1, param2, param3];
+        let lastData = [];
+        let currentAnimation;
 
         const chartExplorer = new Chart(ctxExplorer, {
             type: 'line',
             data: {
-                labels: Array.from({ length: dataLength }, (_, i) => i),
+                labels: [],
                 datasets: [{
                     label: 'Signal',
-                    data: explorerData,
+                    data: [],
                     borderColor: '#3b82f6',
                     backgroundColor: 'rgba(59,130,246,0.2)',
                     fill: true,
-                    tension: 0.4
+                    tension: 0.4,
+                    pointRadius: 0
                 }]
             },
             options: {
                 responsive: true,
-                animation: { duration: 500 },
+                animation: false, // Disable default Chart.js animations for GSAP control
                 scales: {
-                    x: { display: false },
-                    y: { beginAtZero: true }
+                    x: { display: true, title: { display: true, text: 'Time (t)' } },
+                    y: { beginAtZero: false, title: { display: true, text: 'Amplitude' } }
                 }
             }
         });
 
-        function updateExplorer() {
-            amp = parseFloat(document.getElementById('ampSlider').value);
-            freq = parseFloat(document.getElementById('freqSlider').value);
-            phase = parseFloat(document.getElementById('phaseSlider').value);
-
-            document.getElementById('ampValue').innerText = amp.toFixed(1);
-            document.getElementById('freqValue').innerText = freq.toFixed(1);
-            document.getElementById('phaseValue').innerText = phase.toFixed(1);
-
-            chartExplorer.data.datasets[0].data = Array.from({ length: dataLength }, (_, i) => {
-                let x = (i / dataLength) * 4 * Math.PI;
-                return amp * Math.sin(freq * x + phase);
-            });
-
-            chartExplorer.update();
+        function updateSliderVisibility(signalType) {
+            allParams.forEach(p => p.container.style.display = 'none');
+            switch (signalType) {
+                case 'sine':
+                    param1.container.style.display = 'flex'; param1.label.textContent = 'Amplitude'; param1.slider.min = 0; param1.slider.max = 10; param1.slider.step = 0.1; param1.slider.value = 2;
+                    param2.container.style.display = 'flex'; param2.label.textContent = 'Frequency'; param2.slider.min = 0.1; param2.slider.max = 5; param2.slider.step = 0.1; param2.slider.value = 1;
+                    param3.container.style.display = 'flex'; param3.label.textContent = 'Phase'; param3.slider.min = 0; param3.slider.max = 6.28; param3.slider.step = 0.1; param3.slider.value = 0;
+                    break;
+                case 'step':
+                    param1.container.style.display = 'flex'; param1.label.textContent = 'Amplitude'; param1.slider.min = 0; param1.slider.max = 10; param1.slider.step = 0.1; param1.slider.value = 1;
+                    param2.container.style.display = 'flex'; param2.label.textContent = 'Position'; param2.slider.min = -5; param2.slider.max = 5; param2.slider.step = 0.1; param2.slider.value = 0;
+                    break;
+                case 'ramp':
+                    param1.container.style.display = 'flex'; param1.label.textContent = 'Slope'; param1.slider.min = -2; param1.slider.max = 2; param1.slider.step = 0.1; param1.slider.value = 1;
+                    param2.container.style.display = 'flex'; param2.label.textContent = 'Position'; param2.slider.min = -5; param2.slider.max = 5; param2.slider.step = 0.1; param2.slider.value = 0;
+                    break;
+                case 'exponential':
+                    param1.container.style.display = 'flex'; param1.label.textContent = 'Amplitude'; param1.slider.min = 0; param1.slider.max = 10; param1.slider.step = 0.1; param1.slider.value = 3;
+                    param2.container.style.display = 'flex'; param2.label.textContent = 'Factor (a)'; param2.slider.min = -2; param2.slider.max = 2; param2.slider.step = 0.1; param2.slider.value = -0.5;
+                    break;
+                case 'pulse':
+                    param1.container.style.display = 'flex'; param1.label.textContent = 'Amplitude'; param1.slider.min = 0; param1.slider.max = 10; param1.slider.step = 0.1; param1.slider.value = 3;
+                    param2.container.style.display = 'flex'; param2.label.textContent = 'Center'; param2.slider.min = -5; param2.slider.max = 5; param2.slider.step = 0.1; param2.slider.value = 0;
+                    param3.container.style.display = 'flex'; param3.label.textContent = 'Width'; param3.slider.min = 0.1; param3.slider.max = 10; param3.slider.step = 0.1; param3.slider.value = 2;
+                    break;
+                case 'impulse':
+                    param1.container.style.display = 'flex'; param1.label.textContent = 'Amplitude'; param1.slider.min = 0; param1.slider.max = 10; param1.slider.step = 0.1; param1.slider.value = 5;
+                    param2.container.style.display = 'flex'; param2.label.textContent = 'Position'; param2.slider.min = -5; param2.slider.max = 5; param2.slider.step = 0.1; param2.slider.value = 0;
+                    break;
+            }
         }
 
-        document.getElementById('ampSlider').addEventListener('input', updateExplorer);
-        document.getElementById('freqSlider').addEventListener('input', updateExplorer);
-        document.getElementById('phaseSlider').addEventListener('input', updateExplorer);
+        function generateSignalData() {
+            const signalType = signalTypeSelect.value;
+            let yData, tension = 0.4, fill = true;
+            const dataLength = 400, xMin = -10, xMax = 10;
+            const xLabels = Array.from({ length: dataLength }, (_, i) => xMin + (i / (dataLength - 1)) * (xMax - xMin));
+            const p1Val = parseFloat(param1.slider.value), p2Val = parseFloat(param2.slider.value), p3Val = parseFloat(param3.slider.value);
+            param1.value.textContent = p1Val.toFixed(1); param2.value.textContent = p2Val.toFixed(1); param3.value.textContent = p3Val.toFixed(1);
 
-        // Chart.js for Signal Operations (Input and Combined charts)
+            switch (signalType) {
+                case 'sine': yData = xLabels.map(t => p1Val * Math.sin(p2Val * t + p3Val)); break;
+                case 'step': tension = 0; yData = xLabels.map(t => (t >= p2Val) ? p1Val : 0); break;
+                case 'ramp': tension = 0.1; yData = xLabels.map(t => (t >= p2Val) ? p1Val * (t - p2Val) : 0); break;
+                case 'exponential': yData = xLabels.map(t => (t >= 0) ? p1Val * Math.exp(p2Val * t) : 0); break;
+                case 'pulse': tension = 0; yData = xLabels.map(t => (Math.abs(t - p2Val) <= p3Val / 2) ? p1Val : 0); break;
+                case 'impulse':
+                    tension = 0.1; fill = false; yData = Array(dataLength).fill(0);
+                    const impulseIndex = xLabels.reduce((closestIndex, currentVal, currentIndex) => (Math.abs(currentVal - p2Val) < Math.abs(xLabels[closestIndex] - p2Val)) ? currentIndex : closestIndex, 0);
+                    yData[impulseIndex] = p1Val;
+                    if (impulseIndex > 0) yData[impulseIndex - 1] = 0;
+                    if (impulseIndex < dataLength - 1) yData[impulseIndex + 1] = 0;
+                    break;
+            }
+            return { yData, xLabels, tension, fill };
+        }
+
+        // MODIFIED: This function now always animates for a smoother experience
+        function updateExplorer() {
+            if (currentAnimation) currentAnimation.kill();
+
+            const { yData, xLabels, tension, fill } = generateSignalData();
+            chartExplorer.data.labels = xLabels.map(l => l.toFixed(1));
+            chartExplorer.data.datasets[0].tension = tension;
+            chartExplorer.data.datasets[0].fill = fill;
+
+            // Animate from the last known data to the new data
+            if (lastData && lastData.length === yData.length) {
+                const proxyData = [...lastData];
+                currentAnimation = gsap.to(proxyData, {
+                    duration: 0.4, // Fast enough for smooth slider dragging
+                    ease: "power2.out",
+                    endArray: yData,
+                    onUpdate: function () {
+                        chartExplorer.data.datasets[0].data = this.targets()[0];
+                        chartExplorer.update('none');
+                    },
+                    onComplete: () => { currentAnimation = null; }
+                });
+            } else {
+                // For the very first load, just set the data directly
+                chartExplorer.data.datasets[0].data = yData;
+                chartExplorer.update('none');
+            }
+            lastData = yData; // Update the last known data state
+        }
+
+        // MODIFIED: Event listeners now call the simplified updateExplorer function
+        signalTypeSelect.addEventListener('change', () => {
+            updateSliderVisibility(signalTypeSelect.value);
+            updateExplorer();
+        });
+        allParams.forEach(p => p.slider.addEventListener('input', updateExplorer));
+
+        // Initial setup
+        updateSliderVisibility(signalTypeSelect.value);
+        updateExplorer();
+
+        // NEW: Click handler for displaying point values
+        const valueTooltip = document.getElementById('value-tooltip');
+        let tooltipTimeline; // To manage the tooltip animation
+
+        ctxExplorer.canvas.addEventListener('click', (event) => {
+            const points = chartExplorer.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+
+            if (points.length > 0) {
+                const firstPoint = points[0];
+                const label = chartExplorer.data.labels[firstPoint.index];
+                const value = chartExplorer.data.datasets[firstPoint.datasetIndex].data[firstPoint.index];
+
+                valueTooltip.innerHTML = `Time: ${label}<br>Value: ${value.toFixed(3)}`;
+
+                // Kill any previous animation to avoid overlaps
+                if (tooltipTimeline) {
+                    tooltipTimeline.kill();
+                }
+
+                // Position and animate the tooltip using GSAP
+                tooltipTimeline = gsap.timeline();
+                tooltipTimeline.set(valueTooltip, {
+                    x: event.clientX + 15,
+                    y: event.clientY,
+                    display: 'block',
+                    autoAlpha: 0,
+                    scale: 0.8
+                });
+                tooltipTimeline.to(valueTooltip, {
+                    autoAlpha: 1,
+                    scale: 1,
+                    duration: 0.2,
+                    ease: 'power2.out'
+                });
+                tooltipTimeline.to(valueTooltip, {
+                    autoAlpha: 0,
+                    duration: 0.3,
+                    ease: 'power2.in',
+                    delay: 2.5 // Keep it on screen for 2.5 seconds
+                });
+            }
+        });
+
+        // Other charts (Operations, Analog)
         const ctxInput = document.getElementById('chartInput').getContext('2d');
         const ctxOutput = document.getElementById('chartOutput').getContext('2d');
+        const opDataLength = 100;
+        const inputData1 = Array.from({ length: opDataLength }, (_, i) => Math.sin(2 * Math.PI * i / opDataLength));
+        const inputData2 = Array.from({ length: opDataLength }, (_, i) => 0.5 * Math.cos(4 * Math.PI * i / opDataLength));
 
-        // Example input signals
-        const inputData1 = Array.from({ length: dataLength }, (_, i) => Math.sin(2 * Math.PI * i / dataLength));
-        const inputData2 = Array.from({ length: dataLength }, (_, i) => 0.5 * Math.cos(4 * Math.PI * i / dataLength));
+        const chartInput = new Chart(ctxInput, { type: 'line', data: { labels: Array.from({ length: opDataLength }, (_, i) => i), datasets: [{ label: 'Signal 1', data: inputData1, borderColor: '#f97316', tension: 0.4 }, { label: 'Signal 2', data: inputData2, borderColor: '#10b981', tension: 0.4 }] }, options: { responsive: true, animation: { duration: 500 }, scales: { x: { display: false }, y: { beginAtZero: false } } } });
+        const chartOutput = new Chart(ctxOutput, { type: 'line', data: { labels: Array.from({ length: opDataLength }, (_, i) => i), datasets: [{ label: 'Combined Signal', data: inputData1.map((v, i) => v + inputData2[i]), borderColor: '#8b5cf6', tension: 0.4 }] }, options: { responsive: true, animation: { duration: 500 }, scales: { x: { display: false }, y: { beginAtZero: false } } } });
 
-        const chartInput = new Chart(ctxInput, {
-            type: 'line',
-            data: {
-                labels: Array.from({ length: dataLength }, (_, i) => i),
-                datasets: [
-                    { label: 'Signal 1', data: inputData1, borderColor: '#f97316', tension: 0.4 },
-                    { label: 'Signal 2', data: inputData2, borderColor: '#10b981', tension: 0.4 }
-                ]
-            },
-            options: {
-                responsive: true,
-                animation: { duration: 500 },
-                scales: { x: { display: false }, y: { beginAtZero: false } }
-            }
-        });
-
-        const chartOutput = new Chart(ctxOutput, {
-            type: 'line',
-            data: {
-                labels: Array.from({ length: dataLength }, (_, i) => i),
-                datasets: [{
-                    label: 'Combined Signal',
-                    data: inputData1.map((v, i) => v + inputData2[i]),
-                    borderColor: '#8b5cf6',
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                animation: { duration: 500 },
-                scales: { x: { display: false }, y: { beginAtZero: false } }
-            }
-        });
-
-        // Chart.js for Analog to Digital conversion
         const ctxAnalog = document.getElementById('chartAnalog').getContext('2d');
         let samplingRate = parseInt(document.getElementById('samplingSlider').value);
-
-        // Prepare analog signal data points
-        const analogDataX = Array.from({ length: dataLength }, (_, i) => i * 0.1);
+        const analogDataLength = 200;
+        const analogDataX = Array.from({ length: analogDataLength }, (_, i) => i * 0.1);
         const analogDataY = analogDataX.map(x => Math.sin(x));
         const analogPoints = analogDataX.map((x, i) => ({ x: x, y: analogDataY[i] }));
 
-        const chartAnalog = new Chart(ctxAnalog, {
-            type: 'scatter',
-            data: {
-                datasets: [
-                    {
-                        label: 'Analog Signal',
-                        data: analogPoints,
-                        borderColor: '#3b82f6',
-                        pointRadius: 0,
-                        showLine: true,
-                        fill: false,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Sampled Points',
-                        data: analogPoints.filter((_, i) => i % samplingRate === 0),
-                        borderColor: '#ef4444',
-                        pointRadius: 6,
-                        showLine: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                animation: { duration: 500 },
-                scales: {
-                    x: { type: 'linear', title: { display: true, text: 'Time' } },
-                    y: { beginAtZero: true }
-                }
-            }
-        });
+        const chartAnalog = new Chart(ctxAnalog, { type: 'scatter', data: { datasets: [{ label: 'Analog Signal', data: analogPoints, borderColor: '#3b82f6', pointRadius: 0, showLine: true, fill: false, tension: 0.4 }, { label: 'Sampled Points', data: analogPoints.filter((_, i) => i % (21 - samplingRate) === 0), backgroundColor: '#ef4444', pointRadius: 6, showLine: false }] }, options: { responsive: true, animation: { duration: 500 }, scales: { x: { type: 'linear', title: { display: true, text: 'Time' } }, y: { beginAtZero: false, min: -1.2, max: 1.2 } } } });
 
         function updateAnalog() {
             samplingRate = parseInt(document.getElementById('samplingSlider').value);
             document.getElementById('samplingValue').innerText = samplingRate;
-
-            const sampledPoints = analogPoints.filter((_, i) => i % samplingRate === 0);
-            chartAnalog.data.datasets[1].data = sampledPoints;
+            const sampleInterval = 21 - samplingRate;
+            chartAnalog.data.datasets[1].data = analogPoints.filter((_, i) => i % sampleInterval === 0);
             chartAnalog.update();
         }
-
         document.getElementById('samplingSlider').addEventListener('input', updateAnalog);
 
-        // AI Concept Clarifier with typing effect
+        // AI Concept Clarifier
         document.getElementById('askBtn').addEventListener('click', function () {
             const question = document.getElementById('aiQuestion').value;
             if (question.trim() === '') return;
-
-            // Show loading state
             const originalText = this.textContent;
-            this.textContent = 'Thinking...';
-            this.disabled = true;
-
-            // Simulate AI processing
+            this.textContent = 'Thinking...'; this.disabled = true;
             setTimeout(() => {
-                this.textContent = originalText;
-                this.disabled = false;
-
+                this.textContent = originalText; this.disabled = false;
                 const answerContainer = document.getElementById('aiAnswer');
                 const answerText = document.getElementById('aiAnswerText');
-
-                // Sample answers based on question keywords
                 let response = '';
                 const lowerQuestion = question.toLowerCase();
-
-                if (lowerQuestion.includes('nyquist')) {
-                    response = 'The Nyquist rate is a fundamental concept in signal processing. It refers to the minimum sampling rate required to accurately reconstruct a continuous signal from its samples. Specifically, the Nyquist rate is twice the highest frequency present in the signal. Sampling at a rate lower than the Nyquist rate leads to aliasing, where different signals become indistinguishable after sampling. This principle is crucial in analog-to-digital conversion and ensures that the original signal can be perfectly reconstructed from its samples.';
-                } else if (lowerQuestion.includes('aliasing')) {
-                    response = 'Aliasing occurs when a continuous signal is sampled at a rate that is too low to accurately represent the highest frequencies in the signal. When the sampling rate is below the Nyquist rate (twice the highest frequency), higher frequency components fold back into lower frequencies, creating distortion in the reconstructed signal. This phenomenon can cause significant errors in digital signal processing systems. Anti-aliasing filters are used before sampling to remove frequencies above half the sampling rate to prevent this effect.';
-                } else if (lowerQuestion.includes('fourier') || lowerQuestion.includes('fft')) {
-                    response = 'The Fourier Transform is a mathematical technique that decomposes a signal into its constituent frequencies. It transforms a time-domain signal into its frequency-domain representation. The Fast Fourier Transform (FFT) is an efficient algorithm for computing the Discrete Fourier Transform (DFT) and its inverse. FFT reduces the computation time from O(N²) to O(N log N), making it practical for real-time signal processing applications like audio processing, image analysis, and telecommunications.';
-                } else {
-                    response = 'Signal processing is a field of engineering and applied mathematics that deals with the analysis, synthesis, and modification of signals. Signals can be one-dimensional (like audio) or multi-dimensional (like images). The core concepts include sampling, filtering, Fourier analysis, and system modeling. Modern applications span telecommunications, audio processing, medical imaging, control systems, and machine learning. Understanding the fundamentals of analog vs digital signals, time vs frequency domain analysis, and system responses is essential for mastering this field.';
-                }
-
-                answerText.textContent = '';
-                answerContainer.classList.remove('hidden');
-
-                // Typewriter effect
-                let i = 0;
-                const typingSpeed = 20; // milliseconds per character
-
-                function typeWriter() {
-                    if (i < response.length) {
-                        answerText.textContent += response.charAt(i);
-                        i++;
-                        setTimeout(typeWriter, typingSpeed);
-                    }
-                }
-
+                if (lowerQuestion.includes('nyquist')) { response = 'The Nyquist rate is a fundamental concept in signal processing. It refers to the minimum sampling rate required to accurately reconstruct a continuous signal from its samples. Specifically, the Nyquist rate is twice the highest frequency present in the signal. Sampling at a rate lower than the Nyquist rate leads to aliasing, where different signals become indistinguishable after sampling. This principle is crucial in analog-to-digital conversion and ensures that the original signal can be perfectly reconstructed from its samples.'; }
+                else if (lowerQuestion.includes('aliasing')) { response = 'Aliasing occurs when a continuous signal is sampled at a rate that is too low to accurately represent the highest frequencies in the signal. When the sampling rate is below the Nyquist rate (twice the highest frequency), higher frequency components fold back into lower frequencies, creating distortion in the reconstructed signal. This phenomenon can cause significant errors in digital signal processing systems. Anti-aliasing filters are used before sampling to remove frequencies above half the sampling rate to prevent this effect.'; }
+                else if (lowerQuestion.includes('fourier') || lowerQuestion.includes('fft')) { response = 'The Fourier Transform is a mathematical technique that decomposes a signal into its constituent frequencies. It transforms a time-domain signal into its frequency-domain representation. The Fast Fourier Transform (FFT) is an efficient algorithm for computing the Discrete Fourier Transform (DFT) and its inverse. FFT reduces the computation time from O(N²) to O(N log N), making it practical for real-time signal processing applications like audio processing, image analysis, and telecommunications.'; }
+                else { response = 'Signal processing is a field of engineering and applied mathematics that deals with the analysis, synthesis, and modification of signals. Signals can be one-dimensional (like audio) or multi-dimensional (like images). The core concepts include sampling, filtering, Fourier analysis, and system modeling. Modern applications span telecommunications, audio processing, medical imaging, control systems, and machine learning. Understanding the fundamentals of analog vs digital signals, time vs frequency domain analysis, and system responses is essential for mastering this field.'; }
+                answerText.textContent = ''; answerContainer.classList.remove('hidden');
+                let i = 0; const typingSpeed = 20;
+                function typeWriter() { if (i < response.length) { answerText.textContent += response.charAt(i); i++; setTimeout(typeWriter, typingSpeed); } }
                 typeWriter();
             }, 1500);
         });
 
-        // Classification Detail Modal Logic
-        const modal = document.getElementById('classification-detail-modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalBody = document.getElementById('modal-body');
-        const modalCloseBtn = document.getElementById('modal-close-btn');
-        const modalBackBtn = document.getElementById('modal-back-btn');
+        // Modal Logic (Classification & Questions)
+        const classificationModal = document.getElementById('classification-detail-modal');
+        const classificationModalTitle = document.getElementById('modal-title');
+        const classificationModalBody = document.getElementById('modal-body');
+        const questionModal = document.getElementById('question-detail-modal');
+        const questionModalTitle = document.getElementById('question-modal-title');
+        const questionModalBody = document.getElementById('question-modal-body');
+        const questionTextDisplay = document.getElementById('question-text-display');
+        const answerTextDisplay = document.getElementById('answer-text-display');
 
-        // Content for classification details (moved to JS for dynamic loading)
         const classificationDetailsContent = {
             'analog-digital-detail': {
                 title: 'Analog vs Digital Signals',
@@ -980,7 +1048,7 @@
                     <h4 class="text-2xl font-semibold mb-3">Even Signals</h4>
                     <p class="mb-4">
                         An **even signal** is symmetric about the vertical axis (y-axis). Mathematically, for a continuous-time signal $x(t)$, it is even if:
-                        $$ x(t) = x(t + T_0) \\quad \\text{for all } t $$
+                        $$ x(t) = x(-t) \\quad \\text{for all } t $$
                         For a discrete-time signal $x[n]$, it is even if:
                         $$ x[n] = x[-n] \\quad \\text{for all integers } n $$
                         A cosine wave is a classic example of an even signal.
@@ -1002,71 +1070,6 @@
                 `
             }
         };
-
-        function showClassificationDetail(detailId) {
-            const content = classificationDetailsContent[detailId];
-            if (content) {
-                modalTitle.innerHTML = content.title;
-                modalBody.innerHTML = content.content;
-
-                // Re-render MathJax after content is loaded
-                if (window.MathJax) {
-                    window.MathJax.typesetPromise([modalBody]).then(() => {
-                        console.log('MathJax typeset complete for modal.');
-                    }).catch((err) => console.error('MathJax typesetting error:', err));
-                }
-
-                modal.style.visibility = 'visible';
-                gsap.to(modal, { opacity: 1, duration: 0.3, ease: "power2.out" });
-                gsap.fromTo(modal.querySelector('.modal-content'),
-                    { scale: 0.8, opacity: 0 },
-                    { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" }
-                );
-            }
-        }
-
-        function hideClassificationDetail() {
-            gsap.to(modal.querySelector('.modal-content'),
-                { scale: 0.8, opacity: 0, duration: 0.3, ease: "power2.in" }
-            );
-            gsap.to(modal, {
-                opacity: 0,
-                duration: 0.4,
-                delay: 0.1,
-                ease: "power2.in",
-                onComplete: () => {
-                    modal.style.visibility = 'hidden';
-                    modalTitle.innerHTML = '';
-                    modalBody.innerHTML = '';
-                }
-            });
-        }
-
-        // Event listeners for classification cards
-        document.querySelectorAll('[data-detail-id]').forEach(card => {
-            card.addEventListener('click', function () {
-                const detailId = this.getAttribute('data-detail-id');
-                showClassificationDetail(detailId);
-            });
-        });
-
-        // Event listeners for modal close and back buttons
-        modalCloseBtn.addEventListener('click', hideClassificationDetail);
-        modalBackBtn.addEventListener('click', hideClassificationDetail);
-
-        // Practice Question Modal Logic
-        const questionModal = document.getElementById('question-detail-modal');
-        const questionModalTitle = document.getElementById('question-modal-title');
-        const questionTextDisplay = document.getElementById('question-text-display');
-        const answerTextDisplay = document.getElementById('answer-text-display');
-        // const showAnswerBtn = document.getElementById('show-answer-btn'); // This button is removed
-        const questionModalCloseBtn = document.getElementById('question-modal-close-btn');
-        const questionModalBackBtn = document.getElementById('question-modal-back-btn');
-        const answerDisplayDiv = document.getElementById('answer-display');
-        const questionModalBody = document.getElementById('question-modal-body');
-
-
-        // Content for practice questions (from PDF)
         const practiceQuestionsContent = {
             'q1': {
                 question: 'Define and sketch impulse and unit impulse signal.',
@@ -1095,12 +1098,12 @@
             'q7': {
                 question: 'Define deterministic and nondeterministic signals. Give examples.',
                 answer: `**Deterministic Signal:** A signal is classified as deterministic if its behavior can be entirely and precisely described by a mathematical equation. Its future values are predictable based on its mathematical form. Examples include the step signal (e.g., $x(t)=A u(t)$), the ramp signal (e.g., $x(t)=At u(t)$), exponential signals (e.g., $x(t)=A e^{bt} u(t)$), and sinusoidal signals (e.g., $x(t)=A \\sin(\\omega_0 t)$).
-                        **Nondeterministic Signal:** In contrast, a nondeterministic signal possesses characteristics that are random in nature, meaning its future values cannot be precisely predicted by a mathematical formula. A common example is noise signals originating from various sources, such as electronic amplifiers, oscillators, or radio receivers.`
+                                        **Nondeterministic Signal:** In contrast, a nondeterministic signal possesses characteristics that are random in nature, meaning its future values cannot be precisely predicted by a mathematical formula. A common example is noise signals originating from various sources, such as electronic amplifiers, oscillators, or radio receivers.`
             },
             'q8': {
                 question: 'Define periodic and nonperiodic signals. Give examples.',
                 answer: `**Periodic Signal:** A continuous-time signal, $x(t)$ is defined as periodic if it exhibits a repeating pattern over a specific interval of time. This property is mathematically expressed by the condition $x(t+T)=x(t)$, where T represents the fundamental time period—the smallest positive value for which the condition holds. Examples include sinusoidal signals (e.g., $A \\sin(\\omega_0 t)$) and complex exponential signals (e.g., $A e^{j\\omega_0 t}$).
-                        **Nonperiodic (Aperiodic) Signal:** A signal that does not satisfy the condition $x(t+T)=x(t)$ for any positive value of T is classified as an aperiodic or nonperiodic signal. Examples include exponentially decaying signals (e.g., $A e^{-at} u(t)$) or any single, non-repeating pulse.`
+                                        **Nonperiodic (Aperiodic) Signal:** A signal that does not satisfy the condition $x(t+T)=x(t)$ for any positive value of T is classified as an aperiodic or nonperiodic signal. Examples include exponentially decaying signals (e.g., $A e^{-at} u(t)$) or any single, non-repeating pulse.`
             },
             'q9': {
                 question: 'Define energy of a continuous time signal. Give examples.',
@@ -1125,12 +1128,12 @@
             'q14': {
                 question: 'Define causal and noncausal signals. Give examples.',
                 answer: `**Causal Signal:** A signal, $x(t)$ is defined as causal if its values are non-zero only for times $t\\ge0$. This implies that $x(t)=0$ for all $t<0$. Common examples include the unit step signal ($u(t)$) and exponential signals that begin at or after $t=0$ (e.g., $A e^{bt} u(t)$).
-                        **Noncausal Signal:** A signal, $x(t)$, is classified as noncausal if its values are non-zero for times $t<0$. This can mean the signal is defined for $t\\le0$, or for all t (i.e., both $t\\le0$ and $t>0$). Examples include an exponential signal defined for all time (e.g., $A e^{bt}$) or a complex exponential signal defined for all time (e.g., $A e^{j\\omega_0 t}$). A specific subtype of noncausal signals is an anticausal signal, which is defined exclusively for $t\\le0$.`
+                                        **Noncausal Signal:** A signal, $x(t)$, is classified as noncausal if its values are non-zero for times $t<0$. This can mean the signal is defined for $t\\le0$, or for all t (i.e., both $t\\le0$ and $t>0$). Examples include an exponential signal defined for all time (e.g., $A e^{bt}$) or a complex exponential signal defined for all time (e.g., $A e^{j\\omega_0 t}$). A specific subtype of noncausal signals is an anticausal signal, which is defined exclusively for $t\\le0$.`
             },
             'q15': {
                 question: 'Define the impulse and unit step signal (DT).',
                 answer: `**Impulse Signal (Unit Sample Sequence):** The discrete impulse signal, denoted as $\\delta[n]$, is defined as having a value of 1 exclusively at $n = 0$, and a value of 0 for all other integer values of $n$.
-                        **Unit Step Signal:** The discrete unit step signal, denoted as $u[n]$, is defined as having a value of 1 for all integer values of $n \\ge 0$, and a value of 0 for all integer values of $n < 0$.`
+                                        **Unit Step Signal:** The discrete unit step signal, denoted as $u[n]$, is defined as having a value of 1 for all integer values of $n \\ge 0$, and a value of 0 for all integer values of $n < 0$.`
             },
             'q16': {
                 question: 'When a discrete time signal is called periodic?',
@@ -1139,131 +1142,76 @@
             'q17': {
                 question: 'What are energy and power signals (DT)?',
                 answer: `**Energy Signal:** A discrete-time signal $x[n]$ is classified as an energy signal if its total energy, $E$, is finite and non-zero. The total energy is computed as the sum of the squared magnitudes of all samples: $E = \\sum_{n = -\\infty}^{\\infty} |x[n]|^2$. For energy signals, the average power $P$ is zero.
-                        **Power Signal:** A discrete-time signal $x[n]$ is classified as a power signal if its average power, $P$, is finite and non-zero. The average power $P$ is computed as: $P = \\lim_{N\\rightarrow\\infty}\\frac{1}{2N+1}\\sum_{n = -N}^{N} |x[n]|^2$.`
+                                        **Power Signal:** A discrete-time signal $x[n]$ is classified as a power signal if its average power, $P$, is finite and non-zero. The average power $P$ is computed as: $P = \\lim_{N\\rightarrow\\infty}\\frac{1}{2N+1}\\sum_{n = -N}^{N} |x[n]|^2$.`
             }
         };
 
-        function showQuestionDetail(questionId) {
-            const content = practiceQuestionsContent[questionId];
+        function showModal(modal, content) {
             if (content) {
-                questionModalTitle.innerHTML = `Question ${questionId.substring(1).toUpperCase()}`;
-                questionTextDisplay.innerHTML = content.question;
-                answerTextDisplay.innerHTML = content.answer;
+                if (modal === classificationModal) {
+                    classificationModalTitle.innerHTML = content.title;
+                    classificationModalBody.innerHTML = content.content;
+                } else {
+                    questionModalTitle.innerHTML = `Question ${content.id.substring(1).toUpperCase()}`;
+                    questionTextDisplay.innerHTML = content.question;
+                    answerTextDisplay.innerHTML = content.answer;
+                }
 
-                // The answer is now always visible, so no need to hide/show
-                answerDisplayDiv.classList.remove('hidden');
-                // showAnswerBtn.classList.add('hidden'); // This button is removed
-
-                // Re-render MathJax after content is loaded
                 if (window.MathJax) {
-                    window.MathJax.typesetPromise([questionModalBody]).then(() => {
-                        console.log('MathJax typeset complete for question modal.');
-                    }).catch((err) => console.error('MathJax typesetting error:', err));
+                    window.MathJax.typesetPromise([modal.querySelector('.modal-content')]);
                 }
 
-                questionModal.style.visibility = 'visible';
-                gsap.to(questionModal, { opacity: 1, duration: 0.3, ease: "power2.out" });
-                gsap.fromTo(questionModal.querySelector('.modal-content'),
-                    { scale: 0.8, opacity: 0 },
-                    { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" }
-                );
+                modal.style.visibility = 'visible';
+                gsap.to(modal, { opacity: 1, duration: 0.3, ease: "power2.out" });
+                gsap.fromTo(modal.querySelector('.modal-content'), { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" });
             }
         }
 
-        function hideQuestionDetail() {
-            gsap.to(questionModal.querySelector('.modal-content'),
-                { scale: 0.8, opacity: 0, duration: 0.3, ease: "power2.in" }
-            );
-            gsap.to(questionModal, {
-                opacity: 0,
-                duration: 0.4,
-                delay: 0.1,
-                ease: "power2.in",
-                onComplete: () => {
-                    questionModal.style.visibility = 'hidden';
-                    questionModalTitle.innerHTML = '';
-                    questionTextDisplay.innerHTML = '';
-                    answerTextDisplay.innerHTML = '';
-                }
-            });
+        function hideModal(modal) {
+            gsap.to(modal.querySelector('.modal-content'), { scale: 0.8, opacity: 0, duration: 0.3, ease: "power2.in" });
+            gsap.to(modal, { opacity: 0, duration: 0.4, delay: 0.1, ease: "power2.in", onComplete: () => { modal.style.visibility = 'hidden'; } });
         }
 
-        // Event listener for "Show Answer" button inside question modal - REMOVED
-        /*
-        showAnswerBtn.addEventListener('click', () => {
-            answerDisplayDiv.classList.remove('hidden');
-            showAnswerBtn.classList.add('hidden');
-            if (window.MathJax) {
-                window.MathJax.typesetPromise([answerTextDisplay]).then(() => {
-                    console.log('MathJax typeset complete for answer display.');
-                }).catch((err) => console.error('MathJax typesetting error for answer:', err));
-            }
-        });
-        */
+        document.querySelectorAll('[data-detail-id]').forEach(card => card.addEventListener('click', function () { showModal(classificationModal, classificationDetailsContent[this.getAttribute('data-detail-id')]); }));
+        document.getElementById('modal-close-btn').addEventListener('click', () => hideModal(classificationModal));
+        document.getElementById('modal-back-btn').addEventListener('click', () => hideModal(classificationModal));
 
-        // Event listeners for question modal close and back buttons
-        questionModalCloseBtn.addEventListener('click', hideQuestionDetail);
-        questionModalBackBtn.addEventListener('click', hideQuestionDetail);
-
-        // Dynamically load practice questions
         const questionCardsContainer = document.getElementById('question-cards');
         Object.keys(practiceQuestionsContent).forEach(key => {
             const question = practiceQuestionsContent[key].question;
             const card = document.createElement('div');
-            card.classList.add('bg-white', 'dark:bg-gray-800', 'rounded-xl', 'shadow-2xl', 'p-6', 'hover:shadow-xl', 'transform', 'hover:scale-105', 'transition', 'ripple-button', 'cursor-pointer');
+            card.className = 'bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 hover:shadow-xl transform hover:scale-105 transition ripple-button cursor-pointer';
             card.setAttribute('data-question-id', key);
             card.innerHTML = `<h3 class="font-semibold text-gray-900 dark:text-white mb-2">${key.toUpperCase()}: ${question}</h3>`;
             questionCardsContainer.appendChild(card);
-
-            card.addEventListener('click', function () {
-                const questionId = this.getAttribute('data-question-id');
-                showQuestionDetail(questionId);
-            });
+            card.addEventListener('click', function () { showModal(questionModal, { id: key, ...practiceQuestionsContent[key] }); });
         });
 
-        // Initialize animations and effects
-        createParticles();
+        document.getElementById('question-modal-close-btn').addEventListener('click', () => hideModal(questionModal));
+        document.getElementById('question-modal-back-btn').addEventListener('click', () => hideModal(questionModal));
 
-        // Animate the logo on page load
-        gsap.from('#logo', {
-            duration: 1.5,
-            opacity: 1, /* Animate to full opacity */
-            y: 0, /* Animate to original position */
-            ease: "power2.out", /* Smoother ease */
-            onStart: function () {
-                document.getElementById('logo').style.visibility = 'visible';
+        // --- 5. DECORATIVE ANIMATIONS ---
+        function createParticles() {
+            const section = document.getElementById('signal-explorer');
+            const particleCount = 30;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const size = Math.random() * 10 + 5;
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                const animationDuration = Math.random() * 10 + 5;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}%`;
+                particle.style.top = `${posY}%`;
+                particle.style.opacity = Math.random() * 0.5 + 0.1;
+                particle.style.animation = `float ${animationDuration}s infinite ease-in-out`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                section.appendChild(particle);
             }
-        });
-
-        // Setup GSAP ScrollTrigger
-        gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
-
-        // Create animations for each section
-        gsap.utils.toArray('section').forEach((section, i) => {
-            gsap.from(section, {
-                scrollTrigger: {
-                    trigger: section,
-                    start: 'top 90%',
-                    end: 'bottom 20%',
-                    toggleActions: 'play none none reset'
-                },
-                opacity: 0,
-                y: 50,
-                duration: 0.8,
-                delay: i * 0.1
-            });
-        });
-
-        // Create floating animation for cards
-        gsap.utils.toArray('.ripple-button').forEach((card, i) => {
-            gsap.to(card, {
-                y: 5,
-                repeat: -1,
-                yoyo: true,
-                duration: 2 + i * 0.3,
-                ease: "sine.inOut"
-            });
-        });
+        }
+        createParticles();
     </script>
 </body>
 
